@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulk Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#080808;--card:#101010;--card2:#141414;--border:#1e1e1e;
+    --accent:#e8ff47;--accent2:#ff6b35;--blue:#60a5fa;--green:#4ade80;
+    --red:#f87171;--purple:#a78bfa;--teal:#2dd4bf;--text:#efefef;
+    --muted:#555;--muted2:#888;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:60px;}
+  .nav{display:flex;border-bottom:1px solid var(--border);background:var(--card);position:sticky;top:0;z-index:100;overflow-x:auto;}
+  .nav-tab{flex:1;min-width:60px;padding:13px 4px;text-align:center;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+  .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .nav-tab:hover:not(.active){color:var(--text);}
+  .hero{padding:28px 20px 20px;text-align:center;background:linear-gradient(180deg,#0d1200 0%,var(--bg) 100%);}
+  .hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,10vw,72px);letter-spacing:3px;line-height:0.95;}
+  .hero h1 span{color:var(--accent);}
+  .week-badge{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:6px 14px;margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted2);}
+  .week-badge strong{color:var(--accent);}
+  .week-nav{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:10px;}
+  .week-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:4px;cursor:pointer;font-size:13px;transition:.15s;}
+  .week-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .page{display:none;padding:20px;max-width:860px;margin:0 auto;}
+  .page.active{display:block;}
+  .sec-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:var(--text);display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .sec-title .pill{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;padding:2px 8px;border-radius:2px;letter-spacing:1.5px;}
+
+  /* POSTURE */
+  .posture-banner{background:linear-gradient(135deg,#001a1a,#0a1a1a);border:1px solid #1a3a3a;border-left:3px solid var(--teal);border-radius:8px;padding:16px;margin-bottom:16px;font-size:13px;color:#aaa;line-height:1.7;}
+  .posture-banner strong{color:var(--teal);}
+  .daily-routine{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;}
+  .routine-header{background:var(--card2);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .routine-header-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--teal);}
+  .routine-header-sub{font-size:11px;color:var(--muted2);}
+  .routine-timer-all{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);}
+  .routine-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #141414;}
+  .routine-item:last-child{border-bottom:none;}
+  .routine-check{width:22px;height:22px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;}
+  .routine-check.done{background:var(--teal);border-color:var(--teal);}
+  .routine-check .rtick{display:none;color:#000;font-size:11px;font-weight:900;}
+  .routine-check.done .rtick{display:block;}
+  .routine-info{flex:1;}
+  .routine-name{font-size:13px;font-weight:500;}
+  .routine-name.done-text{text-decoration:line-through;color:var(--muted);}
+  .routine-desc{font-size:11px;color:var(--muted2);margin-top:2px;line-height:1.5;}
+  .routine-sets{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);white-space:nowrap;}
+  .posture-section-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.5px;color:var(--teal);margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
+  .posture-ex-grid{display:grid;gap:10px;margin-bottom:16px;}
+  .posture-ex-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .posture-ex-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card2);}
+  .posture-ex-name{font-size:14px;font-weight:600;}
+  .posture-priority{font-size:10px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:3px;}
+  .pri-high{background:#001a10;color:var(--green);border:1px solid #003a20;}
+  .pri-med{background:#001a1a;color:var(--teal);border:1px solid #003a3a;}
+  .posture-ex-body{padding:12px 16px;}
+  .posture-ex-why{font-size:12px;color:var(--muted2);margin-bottom:8px;line-height:1.6;}
+  .posture-ex-how{font-size:12px;color:#ccc;line-height:1.7;}
+  .posture-ex-how strong{color:var(--teal);}
+  .posture-tip-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:1px;background:#1a0e00;color:var(--accent2);border:1px solid #3a2000;border-radius:3px;padding:2px 7px;margin-top:8px;}
+  .posture-progress-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;}
+  .posture-progress-label{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted2);margin-bottom:10px;}
+  .posture-days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .posture-day-dot{height:32px;border-radius:4px;border:1px solid var(--border);background:#141414;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted2);cursor:pointer;transition:.15s;font-weight:600;}
+  .posture-day-dot.done{background:#001a1a;border-color:var(--teal);color:var(--teal);}
+  .posture-day-dot:hover{border-color:var(--teal);}
+  .stretch-card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent2);border-radius:8px;padding:14px 16px;margin-bottom:10px;}
+  .stretch-name{font-size:13px;font-weight:600;margin-bottom:4px;}
+  .stretch-desc{font-size:12px;color:var(--muted2);line-height:1.6;}
+  .stretch-duration{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2);margin-top:6px;}
+
+  /* ALTS */
+  .alt-day{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;}
+  .alt-day-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card2);border-bottom:1px solid var(--border);cursor:pointer;}
+  .alt-day-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;}
+  .alt-day-focus{font-size:11px;color:var(--muted2);letter-spacing:1.5px;text-transform:uppercase;}
+  .alt-ex-block{border-bottom:1px solid #161616;}
+  .alt-ex-block:last-child{border-bottom:none;}
+  .alt-ex-header{display:flex;align-items:center;justify-content:space-between;padding:11px 16px 6px;}
+  .alt-ex-name{font-size:13px;font-weight:600;color:var(--text);}
+  .alt-ex-name.swapped{color:var(--purple);}
+  .alt-ex-badge{font-size:10px;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:3px;}
+  .badge-active{background:#0a1a00;color:var(--accent);border:1px solid #2a3a00;}
+  .badge-swapped{background:#16103a;color:var(--purple);border:1px solid #3a2a7a;}
+  .badge-posture{background:#001a1a;color:var(--teal);border:1px solid #003a3a;}
+  .alt-list{padding:0 16px 10px;display:flex;flex-direction:column;gap:6px;}
+  .alt-option{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#161616;border:1px solid var(--border);border-radius:6px;padding:9px 12px;transition:.15s;}
+  .alt-option.is-current{border-color:#2a3a00;background:#0d1a00;}
+  .alt-option.is-posture{border-color:#003a3a;background:#001212;}
+  .alt-option-name{font-size:13px;color:var(--text);flex:1;}
+  .alt-option.is-current .alt-option-name{color:var(--accent);font-weight:500;}
+  .alt-option.is-posture .alt-option-name{color:var(--teal);}
+  .posture-star{font-size:10px;color:var(--teal);margin-left:4px;}
+  .alt-swap-btn{font-size:10px;font-weight:700;letter-spacing:1px;padding:5px 10px;border-radius:4px;border:none;cursor:pointer;transition:.15s;white-space:nowrap;}
+  .btn-use{background:var(--accent);color:#000;}
+  .btn-use:hover{background:#d4eb30;}
+  .btn-current{background:#1e1e1e;color:var(--muted2);cursor:default;}
+  .btn-restore{background:#1a1030;color:var(--purple);border:1px solid #3a2a6a;cursor:pointer;}
+  .btn-restore:hover{background:#24183e;}
+  .btn-posture{background:#003a3a;color:var(--teal);border:1px solid var(--teal);cursor:pointer;}
+  .btn-posture:hover{background:#004a4a;}
+
+  /* CHECKLIST */
+  .checklist-day{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;}
+  .checklist-day-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card2);border-bottom:1px solid var(--border);cursor:pointer;}
+  .day-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;}
+  .day-meta{font-size:11px;color:var(--muted2);letter-spacing:1.5px;text-transform:uppercase;}
+  .day-prog{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);}
+  .checklist-items{padding:8px 0;}
+  .check-item{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #141414;cursor:pointer;transition:background .15s;}
+  .check-item:last-child{border-bottom:none;}
+  .check-item:hover{background:#161616;}
+  .check-item.done .check-label{text-decoration:line-through;color:var(--muted);}
+  .check-box{width:18px;height:18px;border:2px solid var(--border);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s;}
+  .check-item.done .check-box{background:var(--accent);border-color:var(--accent);}
+  .check-tick{display:none;color:#000;font-size:11px;font-weight:900;}
+  .check-item.done .check-tick{display:block;}
+  .check-label{font-size:13px;flex:1;}
+  .check-label.is-alt{color:var(--purple);}
+  .check-label.is-posture-ex{color:var(--teal);}
+  .check-sets{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2);white-space:nowrap;}
+
+  /* WEIGHTS */
+  .wl-day{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;}
+  .wl-day-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card2);border-bottom:1px solid var(--border);cursor:pointer;}
+  .wl-items{padding:0;}
+  .wl-item{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #141414;}
+  .wl-item:last-child{border-bottom:none;}
+  .wl-name{flex:1;font-size:13px;}
+  .wl-name.is-alt{color:var(--purple);}
+  .wl-name.is-posture{color:var(--teal);}
+  .wl-sets-info{font-size:11px;color:var(--muted2);font-family:'IBM Plex Mono',monospace;white-space:nowrap;margin-right:6px;}
+  .wl-input{background:#1a1a1a;border:1px solid var(--border);border-radius:4px;color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;width:72px;padding:5px 8px;text-align:center;outline:none;transition:.15s;}
+  .wl-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(232,255,71,.08);}
+  .wl-unit{font-size:11px;color:var(--muted);}
+  .wl-pr{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--accent2);background:#1a0d00;border:1px solid #3a1800;border-radius:3px;padding:2px 6px;white-space:nowrap;display:none;}
+  .wl-pr.show{display:inline-block;}
+
+  /* PROGRESS */
+  .progress-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+  .prog-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;}
+  .prog-card-label{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted2);margin-bottom:6px;}
+  .prog-card-val{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--accent);line-height:1;}
+  .prog-card-sub{font-size:11px;color:var(--muted2);margin-top:4px;}
+  .bw-section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;}
+  .bw-entry{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .bw-entry input[type=date],.bw-entry input[type=number]{background:#1a1a1a;border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:7px 10px;outline:none;}
+  .bw-entry input[type=date]{flex:2;}.bw-entry input[type=number]{flex:1;color:var(--blue);}
+  .bw-btn{background:var(--accent);color:#000;font-weight:700;font-size:12px;padding:8px 14px;border:none;border-radius:4px;cursor:pointer;letter-spacing:1px;}
+  .bw-log{max-height:220px;overflow-y:auto;}
+  .bw-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #141414;font-size:13px;}
+  .bw-row:last-child{border-bottom:none;}
+  .bw-date{color:var(--muted2);font-family:'IBM Plex Mono',monospace;font-size:12px;}
+  .bw-val{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--blue);}
+  .bw-diff{font-size:11px;font-family:'IBM Plex Mono',monospace;}
+  .bw-diff.up{color:var(--green);}.bw-diff.down{color:var(--red);}
+  .bw-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;}
+  .chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;}
+  .chart-title{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted2);margin-bottom:12px;}
+  canvas{width:100% !important;}
+  .best-lifts{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;}
+  .best-lifts-title{padding:12px 16px;background:var(--card2);border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted2);}
+  .best-lift-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #141414;font-size:13px;}
+  .best-lift-row:last-child{border-bottom:none;}
+  .bl-name{color:var(--text);}.bl-val{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);}.bl-unit{font-size:11px;color:var(--muted);}
+  .week-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+  .wstat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;}
+  .wstat-val{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--green);}
+  .wstat-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted2);margin-top:4px;}
+
+  /* WARMUP */
+  .warmup-block { background:#0a0f00; border-bottom:1px solid #1a2200; }
+  .warmup-header { display:flex; align-items:center; gap:8px; padding:9px 16px; cursor:pointer; }
+  .warmup-label { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#8aab00; }
+  .warmup-toggle { font-size:10px; color:var(--muted2); margin-left:auto; }
+  .warmup-items { padding:0 16px 10px; }
+  .warmup-item { display:flex; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid #141414; }
+  .warmup-item:last-child { border-bottom:none; }
+  .warmup-dot { width:6px; height:6px; border-radius:50%; background:#8aab00; margin-top:5px; flex-shrink:0; }
+  .warmup-name { font-size:12px; font-weight:500; color:#b8cc60; flex:1; }
+  .warmup-sets { font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8aab00; white-space:nowrap; margin-right:6px; }
+  .warmup-tip { font-size:11px; color:var(--muted2); margin-top:2px; line-height:1.4; }
+
+  /* MISC */
+  .callout{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--purple);border-radius:6px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#aaa;line-height:1.6;}
+  .callout strong{color:var(--purple);}
+  .empty-state{text-align:center;padding:30px;color:var(--muted2);font-size:13px;}
+  .toggle-icon{font-size:12px;color:var(--muted2);transition:.2s;}
+  .collapsed .toggle-icon{transform:rotate(-90deg);}
+  .collapsed .collapsible{display:none;}
+  input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+  ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:#111;}::-webkit-scrollbar-thumb{background:#333;border-radius:2px;}
+
+  /* GIST SYNC */
+  .sync-bar{display:flex;align-items:center;gap:8px;padding:7px 16px;background:var(--card);border-bottom:1px solid var(--border);font-size:11px;}
+  .sync-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .sync-dot.idle{background:var(--muted);}
+  .sync-dot.ok{background:var(--green);}
+  .sync-dot.syncing{background:var(--accent);animation:pulse .8s infinite;}
+  .sync-dot.error{background:var(--red);}
+  .sync-dot.noconfig{background:var(--accent2);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+  .sync-msg{color:var(--muted2);flex:1;font-size:11px;}
+  .sync-time{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:10px;}
+  .sync-btn{font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:3px;cursor:pointer;background:var(--card2);color:var(--muted2);border:1px solid var(--border);}
+  .sync-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .sync-btn.primary{background:var(--accent);color:#000;border-color:var(--accent);}
+
+  /* SETUP MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.hidden{display:none;}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:10px;width:100%;max-width:480px;overflow:hidden;}
+  .modal-header{background:var(--card2);padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .modal-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:var(--accent);}
+  .modal-close{background:none;border:none;color:var(--muted2);font-size:20px;cursor:pointer;padding:2px 6px;}
+  .modal-body{padding:20px;}
+  .modal-step{margin-bottom:18px;}
+  .modal-step-num{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:6px;}
+  .modal-step p{font-size:12px;color:#aaa;line-height:1.6;margin-bottom:8px;}
+  .modal-step a{color:var(--accent);text-decoration:none;}
+  .modal-input{width:100%;background:#1a1a1a;border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:9px 12px;outline:none;transition:.15s;margin-top:6px;}
+  .modal-input:focus{border-color:var(--accent);}
+  .modal-input::placeholder{color:var(--muted);}
+  .modal-footer{padding:0 20px 20px;display:flex;gap:10px;}
+  .modal-save-btn{flex:1;background:var(--accent);color:#000;font-weight:700;font-size:13px;padding:11px;border:none;border-radius:5px;cursor:pointer;letter-spacing:1px;}
+  .modal-skip-btn{background:var(--card2);color:var(--muted2);font-size:12px;padding:11px 16px;border:1px solid var(--border);border-radius:5px;cursor:pointer;}
+  .modal-msg{font-size:12px;margin-top:10px;padding:8px 12px;border-radius:4px;display:none;}
+  .modal-msg.error{display:block;background:#1a0000;color:var(--red);border:1px solid #3a0000;}
+  .modal-msg.success{display:block;background:#001a00;color:var(--green);border:1px solid #003a00;}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-tab active" onclick="showPage('posture')">🧍 Posture</div>
+  <div class="nav-tab" onclick="showPage('alts')">🔄 Swaps</div>
+  <div class="nav-tab" onclick="showPage('checklist')">✅ List</div>
+  <div class="nav-tab" onclick="showPage('weights')">🏋️ Weights</div>
+  <div class="nav-tab" onclick="showPage('progress')">📈 Progress</div>
+</div>
+
+<!-- SYNC BAR -->
+<div class="sync-bar">
+  <div class="sync-dot noconfig" id="syncDot"></div>
+  <div class="sync-msg" id="syncMsg">Cloud sync not configured</div>
+  <span class="sync-time" id="syncTime"></span>
+  <button class="sync-btn" id="syncNowBtn" onclick="syncNow()" style="display:none">↑↓ Sync</button>
+  <button class="sync-btn primary" id="setupSyncBtn" onclick="openModal()">⚙ Setup</button>
+</div>
+
+<!-- SETUP MODAL -->
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">☁ GitHub Gist Sync</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-step">
+        <div class="modal-step-num">Step 1 — GitHub Token</div>
+        <p>Go to <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a> → Generate new token (classic) → check only the <strong style="color:var(--accent)">gist</strong> scope → copy it.</p>
+        <input class="modal-input" type="password" id="inputToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+      </div>
+      <div class="modal-step">
+        <div class="modal-step-num">Step 2 — Gist ID</div>
+        <p>Go to <a href="https://gist.github.com" target="_blank">gist.github.com</a> → New gist → filename: <strong style="color:var(--accent)">bulk-tracker-data.json</strong> → content: <code style="color:var(--accent)">{}</code> → Create secret gist → copy the ID from the URL.</p>
+        <input class="modal-input" type="text" id="inputGistId" placeholder="abc123def456abc123def456abc123de">
+      </div>
+      <div id="modalMsg" class="modal-msg"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-save-btn" onclick="saveGistConfig()">💾 Save & Connect</button>
+      <button class="modal-skip-btn" onclick="closeModal()">Skip</button>
+    </div>
+  </div>
+</div>
+
+<div class="hero">
+  <h1>BULK<br><span>TRACKER</span></h1>
+  <div class="week-badge">Week <strong id="weekNum">1</strong> · 76 kg Start</div>
+  <div class="week-nav">
+    <button class="week-btn" onclick="changeWeek(-1)">← Prev</button>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted2)" id="weekLabel">Week 1</span>
+    <button class="week-btn" onclick="changeWeek(1)">Next →</button>
+  </div>
+</div>
+
+<!-- POSTURE PAGE -->
+<div class="page active" id="page-posture">
+  <div class="sec-title"><span class="pill" style="background:var(--teal);color:#000">FIX</span> Posture Protocol</div>
+  <div class="posture-banner"><strong>Your two targets:</strong> Rounded upper back (weak rear delts, rhomboids, mid-traps) + Forward head posture (weak deep neck flexors). Daily routine takes under 5 minutes — do it every morning.</div>
+  <div class="daily-routine">
+    <div class="routine-header">
+      <div><div class="routine-header-title">⚡ Daily 5-Min Routine</div><div class="routine-header-sub">Every morning · Before every workout</div></div>
+      <div class="routine-timer-all" id="routineProg">0/6 done</div>
+    </div>
+    <div id="dailyRoutineItems"></div>
+  </div>
+  <div class="posture-progress-wrap">
+    <div class="posture-progress-label">📅 Daily Routine Streak — This Week</div>
+    <div class="posture-days-grid" id="postureStreak"></div>
+  </div>
+  <div class="posture-section-title">💪 Key Gym Exercises for Posture</div>
+  <div class="posture-ex-grid">
+    <div class="posture-ex-card">
+      <div class="posture-ex-header"><div class="posture-ex-name">Face Pulls</div><div class="posture-priority pri-high">🔥 TOP PRIORITY</div></div>
+      <div class="posture-ex-body"><div class="posture-ex-why">Best exercise for rear delts + external rotators. Counteracts every press you do.</div><div class="posture-ex-how"><strong>How:</strong> Cable at head height, rope attachment. Pull toward face, elbows flaring out, hands ending beside ears. <strong>Pause 1 sec.</strong> Go light — 4×20.</div><div class="posture-tip-tag">Day 2 — 4×20</div></div>
+    </div>
+    <div class="posture-ex-card">
+      <div class="posture-ex-header"><div class="posture-ex-name">Rear Delt Machine Fly</div><div class="posture-priority pri-high">🔥 TOP PRIORITY</div></div>
+      <div class="posture-ex-body"><div class="posture-ex-why">Added to Day 1 specifically for your posture. Balances all the pressing with a direct rear delt hit — the muscle most responsible for pulling shoulders back.</div><div class="posture-ex-how"><strong>How:</strong> Set arms at shoulder height, squeeze rear delts at the end of each rep. <strong>Don't use momentum.</strong> 3×15 light weight, full squeeze.</div><div class="posture-tip-tag">Day 1 — 3×15</div></div>
+    </div>
+    <div class="posture-ex-card">
+      <div class="posture-ex-header"><div class="posture-ex-name">Chin Tucks</div><div class="posture-priority pri-high">🔥 FORWARD HEAD FIX</div></div>
+      <div class="posture-ex-body"><div class="posture-ex-why">The single best exercise for forward head posture. Reactivates deep cervical flexors.</div><div class="posture-ex-how"><strong>How:</strong> Pull chin straight back without nodding (double chin motion). Hold 5 sec. Release. <strong>3×15 daily.</strong> Feel the stretch at base of skull.</div><div class="posture-tip-tag">Daily — morning routine</div></div>
+    </div>
+    <div class="posture-ex-card">
+      <div class="posture-ex-header"><div class="posture-ex-name">Chest-Supported Machine Row</div><div class="posture-priority pri-high">🔥 TOP PRIORITY</div></div>
+      <div class="posture-ex-body"><div class="posture-ex-why">Replaces bent-over row — same back stimulus with zero lower back involvement. Full focus on scapular retraction.</div><div class="posture-ex-how"><strong>How:</strong> At end of each rep, squeeze shoulder blades together AND pull them down away from ears. <strong>Hold 2 sec.</strong> 4×8.</div><div class="posture-tip-tag">Day 2 — 4×8</div></div>
+    </div>
+    <div class="posture-ex-card">
+      <div class="posture-ex-header"><div class="posture-ex-name">Band Pull-Aparts</div><div class="posture-priority pri-med">DAILY WARM-UP</div></div>
+      <div class="posture-ex-body"><div class="posture-ex-why">Activates mid-traps and rhomboids before every session. Takes 60 seconds.</div><div class="posture-ex-how"><strong>How:</strong> Hold band at shoulder height, arms straight. Pull apart until band touches chest. Squeeze shoulder blades. <strong>3×20 before every session.</strong></div><div class="posture-tip-tag">Pre-workout warm-up — every day</div></div>
+    </div>
+    <div class="posture-ex-card">
+      <div class="posture-ex-header"><div class="posture-ex-name">Hyperextensions</div><div class="posture-priority pri-med">SUPPORTING</div></div>
+      <div class="posture-ex-body"><div class="posture-ex-why">Strengthens erector spinae and glute tie-in. Keeps your lower back strong to support the upper back posture work.</div><div class="posture-ex-how"><strong>How:</strong> Lower slowly, squeeze glutes at the top. Don't hyperextend past neutral. <strong>3×12.</strong></div><div class="posture-tip-tag">Day 6 — 3×12</div></div>
+    </div>
+  </div>
+  <div class="posture-section-title">🧘 Daily Stretches</div>
+  <div class="stretch-card"><div class="stretch-name">Doorway Chest Stretch</div><div class="stretch-desc">Forearms on door frame, step through gently. Opens pec minor — most responsible for rounding shoulders forward.</div><div class="stretch-duration">60 sec × 2 · After every Push session</div></div>
+  <div class="stretch-card"><div class="stretch-name">Suboccipital Release</div><div class="stretch-desc">Interlace fingers behind skull at base of neck. Apply gentle upward pressure. Breathe deeply. Releases tight muscles pulling head forward.</div><div class="stretch-duration">90 sec · Every morning</div></div>
+  <div class="stretch-card"><div class="stretch-name">Levator Scapulae Stretch</div><div class="stretch-desc">Tilt ear toward shoulder, rotate chin down 45°, gentle hand pressure. Each side. Always tight in tall people.</div><div class="stretch-duration">45 sec each side · Daily</div></div>
+  <div class="stretch-card"><div class="stretch-name">Wall Angels</div><div class="stretch-desc">Back flat against wall, arms in goalpost. Slide up overhead keeping full contact. If you lose contact — that's your mobility deficit.</div><div class="stretch-duration">3×10 reps · Daily warm-up</div></div>
+  <div class="stretch-card"><div class="stretch-name">Deep Neck Flexor Hold</div><div class="stretch-desc">Lie flat. Tiny chin nod toward chest. Hold 10 seconds. Reactivates deep neck flexors switched off by forward head posture.</div><div class="stretch-duration">10 sec × 10 reps · Daily</div></div>
+</div>
+
+<!-- ALTS PAGE -->
+<div class="page" id="page-alts">
+  <div class="sec-title"><span class="pill" style="background:var(--purple);color:#fff">00</span> Exercise Swaps</div>
+  <div class="callout"><strong>🔄 Swap</strong> any exercise for an alternative. <span style="color:var(--teal)">🧍 Teal options</span> are posture-priority picks.</div>
+  <div id="altsContainer"></div>
+</div>
+
+<!-- CHECKLIST PAGE -->
+<div class="page" id="page-checklist">
+  <div class="sec-title"><span class="pill">01</span> Weekly Checklist</div>
+  <div id="checklistContainer"></div>
+</div>
+
+<!-- WEIGHTS PAGE -->
+<div class="page" id="page-weights">
+  <div class="sec-title"><span class="pill">02</span> Weight Log</div>
+  <p style="font-size:12px;color:var(--muted2);margin-bottom:16px;">🏅 PR badge when you beat your best. <span style="color:var(--teal)">Teal = posture-priority.</span></p>
+  <div id="weightsContainer"></div>
+</div>
+
+<!-- PROGRESS PAGE -->
+<div class="page" id="page-progress">
+  <div class="sec-title"><span class="pill">03</span> Progress</div>
+  <div class="week-stats">
+    <div class="wstat"><div class="wstat-val" id="statWorkouts">0</div><div class="wstat-label">Workouts Done</div></div>
+    <div class="wstat"><div class="wstat-val" id="statExercises">0</div><div class="wstat-label">Exercises Logged</div></div>
+    <div class="wstat"><div class="wstat-val" id="statStreak">0</div><div class="wstat-label">Week Streak</div></div>
+  </div>
+  <div class="bw-section">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted2);margin-bottom:12px;">📊 Body Weight Log</div>
+    <div class="bw-entry">
+      <input type="date" id="bwDate">
+      <input type="number" id="bwVal" placeholder="76.0" step="0.1" min="40" max="200">
+      <span style="font-size:12px;color:var(--muted2);">kg</span>
+      <button class="bw-btn" onclick="addBodyWeight()">LOG</button>
+    </div>
+    <div class="bw-log" id="bwLog"></div>
+  </div>
+  <div class="chart-wrap"><div class="chart-title">📉 Body Weight Over Time</div><canvas id="weightChart" height="160"></canvas></div>
+  <div class="best-lifts"><div class="best-lifts-title">🏅 Personal Records (All Time)</div><div id="prList"></div></div>
+  <div class="progress-grid">
+    <div class="prog-card"><div class="prog-card-label">Starting Weight</div><div class="prog-card-val">76 kg</div><div class="prog-card-sub">Baseline</div></div>
+    <div class="prog-card"><div class="prog-card-label">Current Weight</div><div class="prog-card-val" id="currentBW">—</div><div class="prog-card-sub" id="bwChange">No entries yet</div></div>
+    <div class="prog-card"><div class="prog-card-label">Target Weight</div><div class="prog-card-val">83 kg</div><div class="prog-card-sub">End of bulk</div></div>
+    <div class="prog-card"><div class="prog-card-label">Weeks Tracked</div><div class="prog-card-val" id="weeksTracked">0</div><div class="prog-card-sub">Keep going 💪</div></div>
+  </div>
+</div>
+
+<script>
+const POSTURE_EXERCISES = new Set([
+  'Face Pulls','Rear Delt Machine Fly','Chest-Supported Machine Row',
+  'Seated Cable Row','Single Arm Cable Row','Band Pull-Aparts',
+  'Rear Delt Cable Fly','Dumbbell Rear Delt Fly','Lat Pulldown Machine',
+  'Lat Pulldown (heavy)','Hyperextensions'
+]);
+
+// ============================================================
+// UPDATED DAYS — final agreed plan
+// ============================================================
+const DAYS = [
+  {
+    day:'Day 1', label:'Monday', focus:'Push — Chest · Shoulders · Triceps',
+    warmup:[
+      { name:'Band Pull-Aparts',          sets:'3×20',  tip:'Activates rear delts before pressing — protects shoulders' },
+      { name:'Arm Circles',               sets:'2×20',  tip:'Forward + backward. Loosens shoulder joint.' },
+      { name:'Doorway Chest Stretch',     sets:'30 sec', tip:'Opens chest before pushing. Reduces injury risk.' },
+      { name:'Light Cable Chest Press',   sets:'1×15',  tip:'50% of working weight. Primes chest + stabilizers.' },
+      { name:'Shoulder Rotation (band)',  sets:'2×15',  tip:'External rotation with band. Warms up rotator cuff.' },
+    ],
+    exercises:[
+      { name:'Chest Press Machine',      sets:'4×6–8',   alts:['Dumbbell Bench Press','Smith Machine Bench Press','Cable Chest Press'] },
+      { name:'Incline Machine Press',    sets:'3×8–10',  alts:['Incline Dumbbell Press','Incline Cable Press','Incline Smith Machine Press'] },
+      { name:'Dumbbell Shoulder Press',  sets:'3×8–10',  alts:['Machine Shoulder Press','Arnold Press','Landmine Press'] },
+      { name:'Machine Lateral Raise',    sets:'3×12–15', alts:['Cable Lateral Raise','Dumbbell Lateral Raise','Leaning Lateral Raise'] },
+      { name:'Rear Delt Machine Fly',    sets:'3×15',    alts:['Rear Delt Cable Fly','Dumbbell Rear Delt Fly','Band Pull-Aparts'] },
+      { name:'Cable Tricep Pushdown',    sets:'3×12',    alts:['Overhead Cable Tricep Extension','Skull Crushers (EZ-bar)','Machine Tricep Dip'] },
+      { name:'Cable Chest Fly',          sets:'3×12–15', alts:['Pec Deck Machine','Dumbbell Fly','Low Cable Fly'] },
+    ]
+  },
+  {
+    day:'Day 2', label:'Tuesday', focus:'Pull — Back · Biceps · Rear Delts',
+    warmup:[
+      { name:'Band Pull-Aparts',          sets:'3×20',  tip:'Non-negotiable on Pull day. Mid-trap activation.' },
+      { name:'Cat-Cow Stretch',           sets:'2×10',  tip:'On all fours. Mobilizes the entire spine before rowing.' },
+      { name:'Scapular Retractions',      sets:'2×15',  tip:'Hang from bar, pull shoulder blades together without bending elbows.' },
+      { name:'Light Lat Pulldown',        sets:'1×15',  tip:'50% weight. Primes lats and mind-muscle connection.' },
+      { name:'Chin Tucks',                sets:'2×10',  tip:'Forward head posture fix. 5 sec hold each.' },
+    ],
+    exercises:[
+      { name:'Lat Pulldown Machine',           sets:'4×8–10',  alts:['Wide-Grip Lat Pulldown','Single-Arm Lat Pulldown','Assisted Pull-Up'] },
+      { name:'Chest-Supported Machine Row',    sets:'4×8–10',  alts:['Dumbbell Row','T-Bar Row','Seated Cable Row'] },
+      { name:'Seated Cable Row',               sets:'3×10–12', alts:['Machine Row','Single Arm Cable Row','Resistance Band Row'] },
+      { name:'Face Pulls',                     sets:'4×20',    alts:['Rear Delt Cable Fly','Dumbbell Rear Delt Fly','Band Pull-Aparts'] },
+      { name:'EZ-Bar Curl',                    sets:'3×10',    alts:['Cable Curl','Dumbbell Curl','Preacher Curl'] },
+      { name:'Hammer Curl',                    sets:'3×12',    alts:['Rope Hammer Curl','Cross-Body Hammer Curl','Incline Dumbbell Curl'] },
+    ]
+  },
+  {
+    day:'Day 3', label:'Wednesday', focus:'Legs — Quads · Hamstrings · Glutes · Calves',
+    warmup:[
+      { name:'5 Min Bike / Treadmill',    sets:'5 min', tip:'Light cardio. Increases blood flow to legs and hips.' },
+      { name:'Bodyweight Squat',          sets:'2×15',  tip:'No weight. Full depth, slow. Primes knees and hips.' },
+      { name:'Hip Circle Stretches',      sets:'2×10',  tip:'Hands on hips, rotate in large circles each direction.' },
+      { name:'Glute Bridge (bodyweight)', sets:'2×15',  tip:'Activates glutes before Glute Push Machine. Essential.' },
+      { name:'Leg Swing (front/back)',    sets:'2×10',  tip:'Hold a pole, swing leg forward and back. Each side.' },
+    ],
+    exercises:[
+      { name:'Leg Press Machine',       sets:'4×8–10',  alts:['Smith Machine Squat','Goblet Squat','Hack Squat Machine'] },
+      { name:'Lying Leg Curl',          sets:'3×12',    alts:['Seated Leg Curl','Single-Leg Curl Machine','Nordic Curl'] },
+      { name:'Glute Push Machine',      sets:'3×12',    alts:['Barbell Hip Thrust (bench)','Cable Kickback','Glute Bridge (floor)'] },
+      { name:'Leg Extension',           sets:'3×12–15', alts:['Step-Up (dumbbell)','Wall Sit','Terminal Knee Extension'] },
+      { name:'Standing Calf Raise',     sets:'3×15–20', alts:['Leg Press Calf Raise','Single-Leg Standing Calf Raise','Smith Machine Calf Raise'] },
+      { name:'Seated Calf Raise',       sets:'3×20',    alts:['Leg Press Calf Raise (toes only)','Single-Leg Seated Calf Raise','Resistance Band Calf Raise'] },
+    ]
+  },
+  { day:'Day 4', label:'Thursday', focus:'Rest / Active Recovery', exercises:[], warmup:[], rest:true },
+  {
+    day:'Day 5', label:'Friday', focus:'Upper Body — Strength Focus',
+    warmup:[
+      { name:'Band Pull-Aparts',           sets:'3×20',  tip:'Mandatory on any upper day. Rear delt activation.' },
+      { name:'Wall Angels',                sets:'2×10',  tip:'Back flat on wall. Posture + shoulder mobility.' },
+      { name:'Shoulder Circles (light DB)', sets:'2×15', tip:'Very light 2–3 kg. Warms rotator cuff for heavy pressing.' },
+      { name:'Light Incline Machine Press', sets:'1×12', tip:'50% of working weight. Neural activation before heavy sets.' },
+      { name:'Scapular Retractions',        sets:'2×12', tip:'Hang from pull-up bar. Shoulder blade squeeze only.' },
+    ],
+    exercises:[
+      { name:'Incline Machine Press',      sets:'4×5–6',   alts:['Incline Dumbbell Press (heavy)','Incline Smith Machine Press','Incline Cable Press'] },
+      { name:'Lat Pulldown (heavy)',        sets:'4×6–8',   alts:['Assisted Pull-Up','Cable Straight-Arm Pulldown','Single-Arm Lat Pulldown'] },
+      { name:'Dumbbell Shoulder Press',    sets:'3×8–10',  alts:['Machine Shoulder Press','Barbell Push Press','Landmine Press'] },
+      { name:'Single Arm Cable Row',       sets:'3×10',    alts:['Dumbbell Row (pause)','Machine Row','Rope Cable Row'] },
+      { name:'Cable Tricep Pushdown',      sets:'3×10',    alts:['Overhead Cable Tricep Extension','Close-Grip Machine Press','Skull Crushers'] },
+      { name:'EZ-Bar Curl',                sets:'3×8–10',  alts:['Preacher Curl','Concentration Curl','Cable Curl (straight bar)'] },
+    ]
+  },
+  {
+    day:'Day 6', label:'Saturday', focus:'Legs — Volume + Glutes',
+    warmup:[
+      { name:'5 Min Bike / Treadmill',       sets:'5 min', tip:'Gets blood into legs before heavy volume day.' },
+      { name:'Glute Bridge (bodyweight)',     sets:'2×20', tip:'Activates glutes before Glute Push Machine and split squat.' },
+      { name:'Hip Flexor Stretch',           sets:'30 sec each', tip:'Lunge position, push hips forward. Opens up for split squats.' },
+      { name:'Lateral Band Walk',            sets:'2×15 each', tip:'Band around ankles, step sideways. Glute med activation.' },
+      { name:'Bodyweight Split Squat',       sets:'1×10 each', tip:'Practice the movement pattern before adding weight.' },
+    ],
+    exercises:[
+      { name:'Glute Push Machine',                  sets:'4×12',      alts:['Barbell Hip Thrust (bench)','Cable Kickback','Glute Bridge (plates)'] },
+      { name:'Bulgarian Split Squat',               sets:'3×10 each', alts:['Walking Lunges (dumbbell)','Reverse Lunge','Step-Up (barbell)'] },
+      { name:'Leg Press (high narrow foot)',         sets:'3×12',      alts:['Smith Machine Squat','Goblet Squat (heavy)','Hack Squat Machine'] },
+      { name:'Seated Calf Raise',                   sets:'4×20',      alts:['Leg Press Calf Raise','Standing Smith Calf Raise','Single-Leg Seated Calf Raise'] },
+      { name:'Hyperextensions',                     sets:'3×12',      alts:['Good Mornings (light)','Reverse Hyperextension','Cable Pull-Through'] },
+    ]
+  },
+  { day:'Day 7', label:'Sunday', focus:'Full Rest', exercises:[], warmup:[], rest:true }
+];
+
+const DAILY_ROUTINE = [
+  { name:'Chin Tucks', sets:'3×15', desc:'Pull chin straight back, hold 5 sec. Stretch at base of skull.', target:'Forward Head' },
+  { name:'Suboccipital Release', sets:'90 sec', desc:'Fingers at base of skull, gentle upward pressure. Breathe deeply.', target:'Forward Head' },
+  { name:'Band Pull-Aparts', sets:'3×20', desc:'Arms at shoulder height, pull band apart until it touches chest. Squeeze scapulae.', target:'Rounded Shoulders' },
+  { name:'Wall Angels', sets:'3×10', desc:'Back against wall, slide arms from goalpost to overhead keeping full contact.', target:'Upper Back' },
+  { name:'Levator Scapulae Stretch', sets:'45 sec each', desc:'Ear to shoulder, chin 45° down. Gentle hand pressure. Each side.', target:'Neck / Shoulder' },
+  { name:'Deep Neck Flexor Hold', sets:'10 sec × 10', desc:'Lie flat, tiny chin nod toward chest. Hold. Activates deep neck flexors.', target:'Forward Head' },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentWeek = 1;
+let state = JSON.parse(localStorage.getItem('bulkTracker') || '{}');
+if (!state.weeks) state.weeks = {};
+if (!state.bw) state.bw = [];
+if (!state.pr) state.pr = {};
+if (!state.swaps) state.swaps = {};
+if (!state.routine) state.routine = {};
+if (!state.postureStreak) state.postureStreak = {};
+
+function save() { localStorage.setItem('bulkTracker', JSON.stringify(state)); }
+function weekKey() { return 'w' + currentWeek; }
+function swapKey(di, ei) { return `${di}-${ei}`; }
+function activeName(di, ei) { return state.swaps[swapKey(di,ei)] || DAYS[di].exercises[ei].name; }
+function isPostureEx(name) { return POSTURE_EXERCISES.has(name); }
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+function getDayData(dayIdx) {
+  if (!state.weeks[weekKey()]) state.weeks[weekKey()] = {};
+  if (!state.weeks[weekKey()][dayIdx]) {
+    state.weeks[weekKey()][dayIdx] = { checked: DAYS[dayIdx].exercises.map(()=>false), weights: DAYS[dayIdx].exercises.map(()=>'') };
+  }
+  return state.weeks[weekKey()][dayIdx];
+}
+
+// ============================================================
+// WEEK NAV
+// ============================================================
+function changeWeek(d) {
+  currentWeek = Math.max(1, Math.min(16, currentWeek + d));
+  document.getElementById('weekNum').textContent = currentWeek;
+  document.getElementById('weekLabel').textContent = 'Week ' + currentWeek;
+  renderChecklist(); renderWeights(); updateStats();
+}
+
+// ============================================================
+// POSTURE ROUTINE
+// ============================================================
+function getTodayRoutine() {
+  const key = todayStr();
+  if (!state.routine[key]) state.routine[key] = DAILY_ROUTINE.map(()=>false);
+  return state.routine[key];
+}
+
+function renderDailyRoutine() {
+  const items = document.getElementById('dailyRoutineItems');
+  const data = getTodayRoutine();
+  items.innerHTML = DAILY_ROUTINE.map((r,i) => `
+    <div class="routine-item">
+      <div class="routine-check ${data[i]?'done':''}" onclick="toggleRoutine(${i},this)"><span class="rtick">✓</span></div>
+      <div class="routine-info">
+        <div class="routine-name ${data[i]?'done-text':''}">${r.name}</div>
+        <div class="routine-desc">${r.desc} <span style="color:var(--teal);font-size:10px">[${r.target}]</span></div>
+      </div>
+      <div class="routine-sets">${r.sets}</div>
+    </div>`).join('');
+  updateRoutineProgress(data);
+}
+
+function toggleRoutine(i, el) {
+  const data = getTodayRoutine();
+  data[i] = !data[i];
+  el.classList.toggle('done');
+  el.closest('.routine-item').querySelector('.routine-name').classList.toggle('done-text');
+  if (data.every(Boolean)) { state.postureStreak[todayStr()] = true; renderPostureStreak(); }
+  else { delete state.postureStreak[todayStr()]; renderPostureStreak(); }
+  save(); updateRoutineProgress(data);
+}
+
+function updateRoutineProgress(data) {
+  const prog = document.getElementById('routineProg');
+  if (prog) prog.textContent = `${data.filter(Boolean).length}/${data.length} done`;
+}
+
+function renderPostureStreak() {
+  const wrap = document.getElementById('postureStreak');
+  if (!wrap) return;
+  const days = ['Mo','Tu','We','Th','Fr','Sa','Su'];
+  const today = new Date();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((today.getDay()+6)%7));
+  wrap.innerHTML = days.map((d,i) => {
+    const date = new Date(monday); date.setDate(monday.getDate()+i);
+    const key = date.toISOString().split('T')[0];
+    const done = !!state.postureStreak[key];
+    const isToday = key === todayStr();
+    return `<div class="posture-day-dot ${done?'done':''}" onclick="toggleStreakDay('${key}',this)">${done?'✓':d}${isToday?'·':''}</div>`;
+  }).join('');
+}
+
+function toggleStreakDay(key, el) {
+  if (state.postureStreak[key]) { delete state.postureStreak[key]; el.classList.remove('done'); el.textContent = key.slice(8); }
+  else { state.postureStreak[key] = true; el.classList.add('done'); el.textContent = '✓'; }
+  save();
+}
+
+// ============================================================
+// ALTS
+// ============================================================
+function renderAlts() {
+  const container = document.getElementById('altsContainer');
+  container.innerHTML = '';
+  DAYS.forEach((day, di) => {
+    if (day.rest) return;
+    const card = document.createElement('div');
+    card.className = 'alt-day';
+    card.innerHTML = `
+      <div class="alt-day-header" onclick="toggleDay(this)">
+        <div><div class="alt-day-title">${day.day} — ${day.label}</div><div class="alt-day-focus">${day.focus}</div></div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="collapsible">
+        ${day.exercises.map((ex,ei) => {
+          const swapped = !!state.swaps[swapKey(di,ei)];
+          const current = activeName(di,ei);
+          const isPostureCurrent = isPostureEx(current);
+          const allOptions = [ex.name, ...ex.alts];
+          return `<div class="alt-ex-block">
+            <div class="alt-ex-header">
+              <div class="alt-ex-name ${swapped?'swapped':''}">${swapped?'🔄 ':''}${current}${isPostureCurrent?' 🧍':''}</div>
+              <div class="alt-ex-badge ${swapped?'badge-swapped':isPostureCurrent?'badge-posture':'badge-active'}">${swapped?'SWAPPED':isPostureCurrent?'POSTURE':'ORIGINAL'}</div>
+            </div>
+            <div class="alt-list">
+              ${allOptions.map(opt => {
+                const isCurrent = opt === current;
+                const isOriginal = opt === ex.name;
+                const isPostureOpt = isPostureEx(opt);
+                let btnClass = isCurrent ? 'btn-current' : isPostureOpt ? 'btn-posture' : 'btn-use';
+                let btnLabel = isCurrent ? '✓ Active' : isPostureOpt ? '🧍 Use' : 'Use This';
+                if (swapped && isOriginal && !isCurrent) { btnClass='btn-restore'; btnLabel='Restore'; }
+                const clickAttr = isCurrent ? '' : `onclick="swapExercise(${di},${ei},'${opt.replace(/'/g,"\\'")}',this)"`;
+                return `<div class="alt-option ${isCurrent?'is-current':''} ${isPostureOpt&&!isCurrent?'is-posture':''}">
+                  <span class="alt-option-name">${opt}${isOriginal?' <span style="font-size:10px;color:var(--muted2)">(original)</span>':''}${isPostureOpt?'<span class="posture-star"> 🧍</span>':''}</span>
+                  <button class="alt-swap-btn ${btnClass}" ${clickAttr}>${btnLabel}</button>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function swapExercise(di, ei, newName) {
+  if (newName === DAYS[di].exercises[ei].name) delete state.swaps[swapKey(di,ei)];
+  else state.swaps[swapKey(di,ei)] = newName;
+  save(); renderAlts(); renderChecklist(); renderWeights();
+}
+
+// ============================================================
+// CHECKLIST
+// ============================================================
+function renderChecklist() {
+  const container = document.getElementById('checklistContainer');
+  container.innerHTML = '';
+  DAYS.forEach((day, di) => {
+    const data = getDayData(di);
+    const card = document.createElement('div');
+    card.className = 'checklist-day';
+    if (day.rest) {
+      card.innerHTML = `<div class="checklist-day-header"><div><div class="day-title" style="color:var(--muted2)">${day.day} — ${day.label}</div><div class="day-meta">${day.focus}</div></div><div class="day-prog" style="color:var(--muted2)">REST</div></div><div style="padding:12px 16px;font-size:12px;color:var(--muted2);">Recovery day. Do your 5-min posture routine! 🛌</div>`;
+    } else {
+      const done = data.checked.filter(Boolean).length;
+      const total = day.exercises.length;
+      const allDone = done === total;
+      const warmupHtml = (day.warmup && day.warmup.length) ? `
+        <div class="warmup-block">
+          <div class="warmup-header" onclick="toggleWarmup(this)">
+            <div class="warmup-label">🔥 Warm-Up (${day.warmup.length} exercises · ~5 min)</div>
+            <div class="warmup-toggle">▼</div>
+          </div>
+          <div class="warmup-items" style="display:none">
+            ${day.warmup.map(w=>`
+              <div class="warmup-item">
+                <div class="warmup-dot"></div>
+                <div style="flex:1">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span class="warmup-name">${w.name}</span>
+                    <span class="warmup-sets">${w.sets}</span>
+                  </div>
+                  <div class="warmup-tip">${w.tip}</div>
+                </div>
+              </div>`).join('')}
+          </div>
+        </div>` : '';
+      card.innerHTML = `
+        <div class="checklist-day-header" onclick="toggleDay(this)">
+          <div><div class="day-title" style="color:${allDone?'var(--green)':'var(--text)'}">${day.day} — ${day.label}${allDone?' ✓':''}</div><div class="day-meta">${day.focus}</div></div>
+          <div style="display:flex;align-items:center;gap:10px"><div class="day-prog">${done}/${total}</div><div class="toggle-icon">▼</div></div>
+        </div>
+        <div class="collapsible">
+          ${warmupHtml}
+          <div class="checklist-items">
+            ${day.exercises.map((ex,ei)=>{
+              const name = activeName(di,ei);
+              const isAlt = !!state.swaps[swapKey(di,ei)];
+              const isPost = isPostureEx(name);
+              return `<div class="check-item ${data.checked[ei]?'done':''}" onclick="toggleCheck(${di},${ei},this)">
+                <div class="check-box"><span class="check-tick">✓</span></div>
+                <span class="check-label ${isAlt?'is-alt':isPost?'is-posture-ex':''}">${isAlt?'🔄 ':isPost?'🧍 ':''}${name}</span>
+                <span class="check-sets">${ex.sets}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }
+    container.appendChild(card);
+  });
+}
+
+function toggleDay(header) {
+  header.parentElement.classList.toggle('collapsed');
+  header.querySelector('.toggle-icon').textContent = header.parentElement.classList.contains('collapsed') ? '▶' : '▼';
+}
+
+function toggleWarmup(header) {
+  const items = header.nextElementSibling;
+  const icon = header.querySelector('.warmup-toggle');
+  const isHidden = items.style.display === 'none';
+  items.style.display = isHidden ? 'block' : 'none';
+  icon.textContent = isHidden ? '▲' : '▼';
+}
+
+function toggleCheck(di, ei, el) {
+  const data = getDayData(di);
+  data.checked[ei] = !data.checked[ei];
+  el.classList.toggle('done');
+  save();
+  const total = DAYS[di].exercises.length;
+  const done = data.checked.filter(Boolean).length;
+  el.closest('.checklist-day').querySelector('.day-prog').textContent = `${done}/${total}`;
+  const title = el.closest('.checklist-day').querySelector('.day-title');
+  if (done===total){title.style.color='var(--green)';title.textContent=`${DAYS[di].day} — ${DAYS[di].label} ✓`;}
+  else{title.style.color='var(--text)';title.textContent=`${DAYS[di].day} — ${DAYS[di].label}`;}
+  updateStats();
+}
+
+// ============================================================
+// WEIGHTS
+// ============================================================
+function renderWeights() {
+  const container = document.getElementById('weightsContainer');
+  container.innerHTML = '';
+  DAYS.forEach((day, di) => {
+    if (day.rest) return;
+    const data = getDayData(di);
+    const card = document.createElement('div');
+    card.className = 'wl-day';
+    card.innerHTML = `
+      <div class="wl-day-header" onclick="toggleDay(this)">
+        <div><div class="day-title">${day.day} — ${day.label}</div><div class="day-meta">${day.focus}</div></div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="collapsible wl-items">
+        ${day.exercises.map((ex,ei)=>{
+          const name = activeName(di,ei);
+          const isAlt = !!state.swaps[swapKey(di,ei)];
+          const isPost = isPostureEx(name);
+          const pr = state.pr[name]||0;
+          return `<div class="wl-item">
+            <div class="wl-name ${isAlt?'is-alt':isPost?'is-posture':''}">${isPost?'🧍 ':isAlt?'🔄 ':''}${name}</div>
+            <div class="wl-sets-info">${ex.sets}</div>
+            <input class="wl-input" type="number" min="0" max="500" step="2.5" placeholder="0" value="${data.weights[ei]}" oninput="updateWeight(${di},${ei},this)" id="wi-${currentWeek}-${di}-${ei}">
+            <div class="wl-unit">kg</div>
+            <div class="wl-pr ${data.weights[ei]&&parseFloat(data.weights[ei])>=pr&&pr>0?'show':''}" id="pr-${currentWeek}-${di}-${ei}">PR 🏅</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function updateWeight(di, ei, input) {
+  const name = activeName(di,ei);
+  const val = parseFloat(input.value)||0;
+  getDayData(di).weights[ei] = input.value;
+  const prevPr = state.pr[name]||0;
+  const prBadge = document.getElementById(`pr-${currentWeek}-${di}-${ei}`);
+  if (val>0&&val>=prevPr){if(val>prevPr)state.pr[name]=val;if(prBadge)prBadge.classList.add('show');}
+  else{if(prBadge)prBadge.classList.remove('show');}
+  save(); renderPRList(); updateStats();
+}
+
+// ============================================================
+// BODY WEIGHT
+// ============================================================
+function addBodyWeight(){
+  const d=document.getElementById('bwDate').value,v=parseFloat(document.getElementById('bwVal').value);
+  if(!d||!v)return;
+  state.bw.push({date:d,weight:v});state.bw.sort((a,b)=>a.date.localeCompare(b.date));
+  save();renderBWLog();drawChart();updateBWStats();
+}
+function deleteBodyWeight(idx){state.bw.splice(idx,1);save();renderBWLog();drawChart();updateBWStats();}
+function renderBWLog(){
+  const log=document.getElementById('bwLog');
+  if(!state.bw.length){log.innerHTML='<div class="empty-state">No entries yet 📊</div>';return;}
+  log.innerHTML=state.bw.map((e,i)=>{
+    const prev=i>0?state.bw[i-1].weight:null;
+    const diff=prev!==null?(e.weight-prev).toFixed(1):null;
+    const dh=diff!==null?`<span class="bw-diff ${diff>=0?'up':'down'}">${diff>=0?'+':''}${diff} kg</span>`:'';
+    return `<div class="bw-row"><span class="bw-date">${e.date}</span><div style="display:flex;align-items:center;gap:10px">${dh}<span class="bw-val">${e.weight}</span><span style="font-size:11px;color:var(--muted2)">kg</span><button class="bw-del" onclick="deleteBodyWeight(${i})">✕</button></div></div>`;
+  }).reverse().join('');
+}
+function updateBWStats(){
+  const el=document.getElementById('currentBW'),chEl=document.getElementById('bwChange'),wt=document.getElementById('weeksTracked');
+  if(!state.bw.length){el.textContent='—';chEl.textContent='No entries yet';wt.textContent='0';return;}
+  const latest=state.bw[state.bw.length-1].weight,first=state.bw[0].weight,diff=(latest-first).toFixed(1);
+  el.textContent=latest+' kg';chEl.textContent=`${diff>=0?'+':''}${diff} kg since start`;
+  const dd=state.bw.length>1?Math.round((new Date(state.bw[state.bw.length-1].date)-new Date(state.bw[0].date))/(7*86400000)):0;
+  wt.textContent=Math.max(1,dd);
+}
+
+// ============================================================
+// CHART
+// ============================================================
+function drawChart(){
+  const canvas=document.getElementById('weightChart'),ctx=canvas.getContext('2d');
+  const W=canvas.offsetWidth,H=160;
+  canvas.width=W*devicePixelRatio;canvas.height=H*devicePixelRatio;ctx.scale(devicePixelRatio,devicePixelRatio);ctx.clearRect(0,0,W,H);
+  if(state.bw.length<2){ctx.fillStyle='#333';ctx.font='13px DM Sans';ctx.textAlign='center';ctx.fillText('Add at least 2 entries to see chart',W/2,H/2);return;}
+  const weights=state.bw.map(e=>e.weight),labels=state.bw.map(e=>e.date.slice(5));
+  const min=Math.min(...weights)-1,max=Math.max(...weights)+1,pad={t:10,r:10,b:30,l:36};
+  const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+  const x=i=>pad.l+(i/(weights.length-1))*cw,y=v=>pad.t+(1-(v-min)/(max-min))*ch;
+  ctx.strokeStyle='#1e1e1e';ctx.lineWidth=1;
+  [0,.25,.5,.75,1].forEach(t=>{const yy=pad.t+t*ch;ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(W-pad.r,yy);ctx.stroke();ctx.fillStyle='#444';ctx.font='10px IBM Plex Mono';ctx.textAlign='right';ctx.fillText((max-t*(max-min)).toFixed(1),pad.l-4,yy+3);});
+  const g=ctx.createLinearGradient(0,pad.t,0,pad.t+ch);g.addColorStop(0,'rgba(232,255,71,.18)');g.addColorStop(1,'rgba(232,255,71,0)');
+  ctx.beginPath();ctx.moveTo(x(0),y(weights[0]));weights.forEach((w,i)=>{if(i>0)ctx.lineTo(x(i),y(w));});ctx.lineTo(x(weights.length-1),pad.t+ch);ctx.lineTo(x(0),pad.t+ch);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  ctx.beginPath();ctx.strokeStyle='#e8ff47';ctx.lineWidth=2;ctx.lineJoin='round';weights.forEach((w,i)=>{i===0?ctx.moveTo(x(i),y(w)):ctx.lineTo(x(i),y(w));});ctx.stroke();
+  weights.forEach((w,i)=>{ctx.beginPath();ctx.arc(x(i),y(w),3.5,0,Math.PI*2);ctx.fillStyle='#e8ff47';ctx.fill();});
+  ctx.fillStyle='#444';ctx.font='9px IBM Plex Mono';ctx.textAlign='center';
+  const step=Math.ceil(labels.length/6);labels.forEach((l,i)=>{if(i%step===0||i===labels.length-1)ctx.fillText(l,x(i),H-pad.b+14);});
+}
+
+function renderPRList(){
+  const list=document.getElementById('prList');
+  const prs=Object.entries(state.pr).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  if(!prs.length){list.innerHTML='<div class="empty-state">Log weights to see PRs 🏅</div>';return;}
+  list.innerHTML=prs.map(([name,kg])=>`<div class="best-lift-row"><div class="bl-name">${name}</div><div><span class="bl-val">${kg}</span> <span class="bl-unit">kg</span></div></div>`).join('');
+}
+
+function updateStats(){
+  const wk=state.weeks[weekKey()]||{};let workouts=0,exercises=0;
+  Object.entries(wk).forEach(([di,data])=>{
+    if(DAYS[parseInt(di)].rest)return;
+    if(data.checked.some(Boolean)||data.weights.some(w=>w&&parseFloat(w)>0))workouts++;
+    exercises+=data.weights.filter(w=>w&&parseFloat(w)>0).length;
+  });
+  document.getElementById('statWorkouts').textContent=workouts;
+  document.getElementById('statExercises').textContent=exercises;
+  let streak=0;
+  for(let w=currentWeek;w>=1;w--){
+    const wd=state.weeks['w'+w]||{};let wc=0;
+    Object.entries(wd).forEach(([di,data])=>{if(!DAYS[parseInt(di)].rest&&(data.checked.some(Boolean)||data.weights.some(v=>v&&parseFloat(v)>0)))wc++;});
+    if(wc>=3)streak++;else break;
+  }
+  document.getElementById('statStreak').textContent=streak;
+}
+
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const tabs=['posture','alts','checklist','weights','progress'];
+  document.querySelectorAll('.nav-tab')[tabs.indexOf(name)].classList.add('active');
+  if(name==='progress'){renderBWLog();drawChart();renderPRList();updateBWStats();updateStats();}
+  if(name==='posture'){renderDailyRoutine();renderPostureStreak();}
+}
+
+// ============================================================
+// GITHUB GIST SYNC
+// ============================================================
+let syncTimeout = null;
+let isSyncing = false;
+
+function getGistConfig() {
+  return {
+    token: localStorage.getItem('gist_token') || '',
+    gistId: localStorage.getItem('gist_id') || ''
+  };
+}
+
+function isGistConfigured() {
+  const c = getGistConfig();
+  return c.token.length > 10 && c.gistId.length > 10;
+}
+
+function setSyncStatus(status, msg, time) {
+  const dot = document.getElementById('syncDot');
+  const msgEl = document.getElementById('syncMsg');
+  const timeEl = document.getElementById('syncTime');
+  const setupBtn = document.getElementById('setupSyncBtn');
+  const syncBtn = document.getElementById('syncNowBtn');
+  dot.className = 'sync-dot ' + status;
+  msgEl.textContent = msg;
+  if (timeEl && time) timeEl.textContent = time;
+  if (status === 'noconfig') { setupBtn.style.display=''; syncBtn.style.display='none'; }
+  else { setupBtn.style.display=''; syncBtn.style.display=''; }
+}
+
+async function pushToGist() {
+  if (!isGistConfigured() || isSyncing) return;
+  const { token, gistId } = getGistConfig();
+  isSyncing = true;
+  setSyncStatus('syncing', 'Saving to cloud...');
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: { 'bulk-tracker-data.json': { content: JSON.stringify(state) } } })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const now = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    setSyncStatus('ok', 'Saved to cloud ✓', now);
+    localStorage.setItem('lastSync', now);
+  } catch(e) {
+    setSyncStatus('error', 'Sync failed — check token/ID');
+  } finally { isSyncing = false; }
+}
+
+async function pullFromGist() {
+  if (!isGistConfigured()) return false;
+  const { token, gistId } = getGistConfig();
+  setSyncStatus('syncing', 'Loading from cloud...');
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers: { 'Authorization': `token ${token}` }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const raw = data.files?.['bulk-tracker-data.json']?.content;
+    if (!raw) throw new Error('No data file in gist');
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+      state = { weeks:{}, bw:[], pr:{}, swaps:{}, routine:{}, postureStreak:{}, ...parsed };
+      save();
+    }
+    const now = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    setSyncStatus('ok', 'Synced ✓', now);
+    return true;
+  } catch(e) {
+    setSyncStatus('error', 'Load failed — ' + e.message);
+    return false;
+  }
+}
+
+async function syncNow() {
+  await pullFromGist();
+  renderAll();
+  setTimeout(() => pushToGist(), 500);
+}
+
+function schedulePush() {
+  if (!isGistConfigured()) return;
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(() => pushToGist(), 2000);
+}
+
+// Override save to also schedule a push
+const _origSave = save;
+save = function() { _origSave(); schedulePush(); };
+
+function openModal() {
+  const c = getGistConfig();
+  document.getElementById('inputToken').value = c.token;
+  document.getElementById('inputGistId').value = c.gistId;
+  document.getElementById('modalMsg').className = 'modal-msg';
+  document.getElementById('modalMsg').textContent = '';
+  document.getElementById('modalOverlay').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.add('hidden');
+}
+
+async function saveGistConfig() {
+  const token = document.getElementById('inputToken').value.trim();
+  const gistId = document.getElementById('inputGistId').value.trim();
+  const msgEl = document.getElementById('modalMsg');
+  if (!token || !gistId) {
+    msgEl.className = 'modal-msg error'; msgEl.textContent = 'Please fill in both fields.'; return;
+  }
+  msgEl.className = 'modal-msg'; msgEl.textContent = 'Testing connection...'; msgEl.style.display='block'; msgEl.style.background='#111'; msgEl.style.color='var(--muted2)'; msgEl.style.border='1px solid var(--border)';
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers: { 'Authorization': `token ${token}` }
+    });
+    if (!res.ok) throw new Error('Invalid token or Gist ID (HTTP ' + res.status + ')');
+    localStorage.setItem('gist_token', token);
+    localStorage.setItem('gist_id', gistId);
+    msgEl.className = 'modal-msg success'; msgEl.textContent = '✓ Connected! Syncing your data now...';
+    setTimeout(async () => {
+      closeModal();
+      await syncNow();
+    }, 1200);
+  } catch(e) {
+    msgEl.className = 'modal-msg error'; msgEl.textContent = '✗ ' + e.message;
+  }
+}
+
+function renderAll() {
+  renderDailyRoutine(); renderPostureStreak();
+  renderAlts(); renderChecklist(); renderWeights(); updateStats();
+  const activePage = document.querySelector('.page.active')?.id?.replace('page-','');
+  if (activePage === 'progress') { renderBWLog(); drawChart(); renderPRList(); updateBWStats(); }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.getElementById('bwDate').value = todayStr();
+
+// Init sync UI
+if (isGistConfigured()) {
+  setSyncStatus('idle', 'Cloud sync ready', localStorage.getItem('lastSync') || '');
+  document.getElementById('syncNowBtn').style.display = '';
+  document.getElementById('setupSyncBtn').textContent = '⚙ Edit';
+  // Auto-pull on load then render
+  pullFromGist().then(() => renderAll());
+} else {
+  setSyncStatus('noconfig', 'Cloud sync not configured');
+  renderAll();
+}
+</script>
+</body>
+</html>
