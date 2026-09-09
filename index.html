@@ -1117,7 +1117,7 @@ async function pullFromGist() {
     if (!raw) throw new Error('No data file in gist');
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
-      state = { weeks:{}, bw:[], pr:{}, swaps:{}, routine:{}, postureStreak:{}, ...parsed };
+      state = { weeks:{}, bw:[], pr:{}, swaps:{}, routine:{}, postureStreak:{}, fuel:{}, ...parsed };
       save();
     }
     const now = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
