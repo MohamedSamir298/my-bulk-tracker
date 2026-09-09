@@ -208,6 +208,13 @@
   .fuel-name.done-text{text-decoration:line-through;color:var(--muted);}
   .fuel-desc{font-size:11px;color:var(--muted2);margin-top:2px;line-height:1.5;}
   .fuel-macros-inline{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--green);white-space:nowrap;text-align:right;}
+  .fuel-swap-row{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px 50px;}
+  .fuel-swap-chip{font-size:10px;font-weight:600;padding:5px 9px;border-radius:5px;border:1px solid var(--border);background:#161616;color:var(--muted2);cursor:pointer;transition:.15s;}
+  .fuel-swap-chip:hover{border-color:var(--green);color:var(--text);}
+  .fuel-swap-chip.active{background:#0d1a0d;border-color:var(--green);color:var(--green);}
+  .fuel-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.5px;padding:1px 6px;border-radius:3px;margin-left:6px;vertical-align:middle;}
+  .fuel-tag.dairy-free{background:#001a1a;color:var(--teal);border:1px solid #003a3a;}
+  .fuel-tag.eating-out{background:#1a0e00;color:var(--accent2);border:1px solid #3a2000;}
   .fuel-log{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;}
   .fuel-log-title{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted2);margin-bottom:12px;}
   .fuel-log-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
@@ -400,7 +407,7 @@
 <!-- FUEL PAGE -->
 <div class="page" id="page-fuel">
   <div class="sec-title"><span class="pill" style="background:var(--green);color:#000">FUEL</span> Daily Calorie Target</div>
-  <div class="callout"><strong>🍽 Why this matters</strong> — for a hardgainer, inconsistent eating is the #1 thing capping muscle growth, more than training. Hit these numbers every day, not just on good-appetite days.</div>
+  <div class="callout"><strong>🍽 Why this matters</strong> — for a hardgainer, inconsistent eating is the #1 thing capping muscle growth, more than training. Hit these numbers every day, not just on good-appetite days. <span style="color:var(--teal)">Tap any option chip below a meal to swap it</span> — dairy-free options are marked, and milk portions are kept small since large amounts can upset your stomach.</div>
   <div class="fuel-target-card">
     <div class="fuel-target-title">🎯 Today's Target</div>
     <div class="fuel-macro-grid">
@@ -578,11 +585,36 @@ const DAILY_ROUTINE = [
 const FUEL_TARGETS = { kcal: 3050, protein: 180, fat: 75, carbs: 415 };
 
 const FUEL_MEALS = [
-  { name:'Breakfast', desc:'Oats (80g) + 2 tbsp peanut butter + 300ml whole milk', kcal:700, protein:25 },
-  { name:'Snack / Shake', desc:'1 scoop protein powder + milk + banana', kcal:350, protein:30 },
-  { name:'Lunch', desc:'Rice + chicken/eggs — cook or order, go for the bigger portion', kcal:800, protein:50 },
-  { name:'Pre/Post-Workout', desc:'3-4 eggs + rice, or a protein shake if short on time', kcal:500, protein:30 },
-  { name:'Dinner', desc:'Rice/potatoes + protein source + some added fat (oil, cheese, nuts)', kcal:700, protein:45 },
+  { name:'Breakfast', options:[
+    { label:'Low-Dairy', desc:'Oats (80g) + 1 tbsp peanut butter + 1 scoop protein powder mixed in water + banana', kcal:650, protein:35, tag:'dairy-free' },
+    { label:'Small Milk', desc:'Oats (80g) + 2 tbsp peanut butter + 150ml milk (small portion, not 300ml)', kcal:650, protein:22 },
+    { label:'No Dairy', desc:'3 whole eggs + 2 slices toast + 1 tsp butter', kcal:600, protein:28, tag:'dairy-free' },
+    { label:'Big Appetite', desc:'Oats (100g) + 3 tbsp peanut butter + banana — no milk needed', kcal:750, protein:24, tag:'dairy-free' },
+  ]},
+  { name:'Snack / Shake', options:[
+    { label:'No Dairy', desc:'1 scoop protein powder + water + banana', kcal:300, protein:28, tag:'dairy-free' },
+    { label:'Plant Milk', desc:'1 scoop protein powder + 150ml lactose-free or almond milk', kcal:280, protein:27, tag:'dairy-free' },
+    { label:'Yogurt', desc:'Greek yogurt (150g) + a handful of nuts — fermented, usually easier on the stomach than fluid milk', kcal:320, protein:20 },
+    { label:'No Shake', desc:'2 rice cakes + peanut butter + protein powder mixed in water', kcal:380, protein:30, tag:'dairy-free' },
+  ]},
+  { name:'Lunch', options:[
+    { label:'Home-Cooked', desc:'Rice (1.5 cups) + grilled chicken breast (200g)', kcal:750, protein:55 },
+    { label:'Eggs Version', desc:'Rice + 4 eggs + vegetables', kcal:700, protein:40 },
+    { label:'Pasta', desc:'Pasta + ground beef or turkey + sauce', kcal:800, protein:45 },
+    { label:'Eating Out', desc:'Whatever you order — chicken/beef + rice or bread, aim for a big plate', kcal:750, protein:40, tag:'eating-out' },
+  ]},
+  { name:'Pre/Post-Workout', options:[
+    { label:'Eggs + Rice', desc:'3-4 eggs + rice', kcal:500, protein:30 },
+    { label:'Quick Shake', desc:'Protein powder mixed in water + banana + rice cake', kcal:400, protein:30, tag:'dairy-free' },
+    { label:'Sandwich', desc:'Turkey or chicken sandwich (2 slices bread)', kcal:480, protein:32 },
+    { label:'Tuna', desc:'1 can tuna + rice', kcal:450, protein:35 },
+  ]},
+  { name:'Dinner', options:[
+    { label:'Rice + Protein', desc:'Rice or potatoes + a protein source + olive oil', kcal:700, protein:45 },
+    { label:'Fish', desc:'Salmon or white fish + potatoes + vegetables', kcal:650, protein:40 },
+    { label:'Stir-Fry', desc:'Chicken or beef stir-fry + rice + vegetables + oil', kcal:750, protein:45 },
+    { label:'Eating Out', desc:'Whatever you order — protein + carb source, aim for a full plate', kcal:700, protein:40, tag:'eating-out' },
+  ]},
 ];
 
 // ============================================================
@@ -597,6 +629,7 @@ if (!state.swaps) state.swaps = {};
 if (!state.routine) state.routine = {};
 if (!state.postureStreak) state.postureStreak = {};
 if (!state.fuel) state.fuel = {};
+if (!state.fuelSwaps) state.fuelSwaps = {};
 
 function save() { localStorage.setItem('bulkTracker', JSON.stringify(state)); }
 function weekKey() { return 'w' + currentWeek; }
@@ -693,18 +726,29 @@ function getTodayFuel() {
   return state.fuel[key];
 }
 
+function activeFuelOption(mi) {
+  return FUEL_MEALS[mi].options[state.fuelSwaps[mi] || 0];
+}
+
 function renderFuel() {
   const data = getTodayFuel();
   const items = document.getElementById('fuelMealItems');
-  items.innerHTML = FUEL_MEALS.map((m,i) => `
-    <div class="fuel-item">
-      <div class="fuel-check ${data.meals[i]?'done':''}" onclick="toggleFuelMeal(${i},this)"><span class="ftick">✓</span></div>
+  items.innerHTML = FUEL_MEALS.map((m,mi) => {
+    const opt = activeFuelOption(mi);
+    const oi = state.fuelSwaps[mi] || 0;
+    const tagHtml = opt.tag ? `<span class="fuel-tag ${opt.tag}">${opt.tag==='dairy-free'?'DAIRY-FREE':'EATING OUT'}</span>` : '';
+    return `<div class="fuel-item">
+      <div class="fuel-check ${data.meals[mi]?'done':''}" onclick="toggleFuelMeal(${mi},this)"><span class="ftick">✓</span></div>
       <div class="fuel-info">
-        <div class="fuel-name ${data.meals[i]?'done-text':''}">${m.name}</div>
-        <div class="fuel-desc">${m.desc}</div>
+        <div class="fuel-name ${data.meals[mi]?'done-text':''}">${m.name} — ${opt.label}${tagHtml}</div>
+        <div class="fuel-desc">${opt.desc}</div>
       </div>
-      <div class="fuel-macros-inline">${m.kcal} kcal<br>${m.protein}g pro</div>
-    </div>`).join('');
+      <div class="fuel-macros-inline">${opt.kcal} kcal<br>${opt.protein}g pro</div>
+    </div>
+    <div class="fuel-swap-row">
+      ${m.options.map((o,i)=>`<span class="fuel-swap-chip ${i===oi?'active':''}" onclick="swapFuelOption(${mi},${i})">${o.label}</span>`).join('')}
+    </div>`;
+  }).join('');
   updateFuelPlannedTotal(data);
   document.getElementById('fuelActualKcal').value = data.kcalActual;
   document.getElementById('fuelActualProtein').value = data.proteinActual;
@@ -713,7 +757,7 @@ function renderFuel() {
 }
 
 function updateFuelPlannedTotal(data) {
-  const planned = FUEL_MEALS.reduce((sum,m,i)=> sum + (data.meals[i]?m.kcal:0), 0);
+  const planned = FUEL_MEALS.reduce((sum,m,i)=> sum + (data.meals[i]?activeFuelOption(i).kcal:0), 0);
   document.getElementById('fuelPlannedTotal').textContent = `${planned}/${FUEL_TARGETS.kcal} kcal planned`;
 }
 
@@ -724,6 +768,12 @@ function toggleFuelMeal(i, el) {
   el.closest('.fuel-item').querySelector('.fuel-name').classList.toggle('done-text');
   save();
   updateFuelPlannedTotal(data);
+}
+
+function swapFuelOption(mi, oi) {
+  state.fuelSwaps[mi] = oi;
+  save();
+  renderFuel();
 }
 
 function updateFuelActual() {
@@ -1117,7 +1167,7 @@ async function pullFromGist() {
     if (!raw) throw new Error('No data file in gist');
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
-      state = { weeks:{}, bw:[], pr:{}, swaps:{}, routine:{}, postureStreak:{}, fuel:{}, ...parsed };
+      state = { weeks:{}, bw:[], pr:{}, swaps:{}, routine:{}, postureStreak:{}, fuel:{}, fuelSwaps:{}, ...parsed };
       save();
     }
     const now = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
