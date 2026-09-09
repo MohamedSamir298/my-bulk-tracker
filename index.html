@@ -407,7 +407,7 @@
 <!-- FUEL PAGE -->
 <div class="page" id="page-fuel">
   <div class="sec-title"><span class="pill" style="background:var(--green);color:#000">FUEL</span> Daily Calorie Target</div>
-  <div class="callout"><strong>🍽 Why this matters</strong> — for a hardgainer, inconsistent eating is the #1 thing capping muscle growth, more than training. Hit these numbers every day, not just on good-appetite days. <span style="color:var(--teal)">Tap any option chip below a meal to swap it</span> — dairy-free options are marked, and milk portions are kept small since large amounts can upset your stomach.</div>
+  <div class="callout"><strong>🍽 Why this matters</strong> — for a hardgainer, inconsistent eating is the #1 thing capping muscle growth, more than training. Hit these numbers every day, not just on good-appetite days. <span style="color:var(--teal)">Tap any option chip below a meal to swap it</span> — dairy-free options are marked, milk portions are kept small since large amounts can upset your stomach, and protein powder is limited to one scoop/day (only the Snack/Shake slot uses it).</div>
   <div class="fuel-target-card">
     <div class="fuel-target-title">🎯 Today's Target</div>
     <div class="fuel-macro-grid">
@@ -586,7 +586,7 @@ const FUEL_TARGETS = { kcal: 3050, protein: 180, fat: 75, carbs: 415 };
 
 const FUEL_MEALS = [
   { name:'Breakfast', options:[
-    { label:'Low-Dairy', desc:'Oats (80g) + 1 tbsp peanut butter + 1 scoop protein powder mixed in water + banana', kcal:650, protein:35, tag:'dairy-free' },
+    { label:'Low-Dairy', desc:'Oats (80g) + 2 tbsp peanut butter + 2 whole eggs + banana', kcal:700, protein:28, tag:'dairy-free' },
     { label:'Small Milk', desc:'Oats (80g) + 2 tbsp peanut butter + 150ml milk (small portion, not 300ml)', kcal:650, protein:22 },
     { label:'No Dairy', desc:'3 whole eggs + 2 slices toast + 1 tsp butter', kcal:600, protein:28, tag:'dairy-free' },
     { label:'Big Appetite', desc:'Oats (100g) + 3 tbsp peanut butter + banana — no milk needed', kcal:750, protein:24, tag:'dairy-free' },
@@ -605,7 +605,7 @@ const FUEL_MEALS = [
   ]},
   { name:'Pre/Post-Workout', options:[
     { label:'Eggs + Rice', desc:'3-4 eggs + rice', kcal:500, protein:30 },
-    { label:'Quick Shake', desc:'Protein powder mixed in water + banana + rice cake', kcal:400, protein:30, tag:'dairy-free' },
+    { label:'Turkey Wrap', desc:'Turkey breast slices (100g) + 2 rice cakes + banana', kcal:400, protein:28, tag:'dairy-free' },
     { label:'Sandwich', desc:'Turkey or chicken sandwich (2 slices bread)', kcal:480, protein:32 },
     { label:'Tuna', desc:'1 can tuna + rice', kcal:450, protein:35 },
   ]},
