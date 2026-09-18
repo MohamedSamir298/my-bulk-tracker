@@ -344,7 +344,7 @@
 
 <div class="hero">
   <h1>BULK<br><span>TRACKER</span></h1>
-  <div class="week-badge">Week <strong id="weekNum">1</strong> · 76 kg Start</div>
+  <div class="week-badge">Week <strong id="weekNum">1</strong> · 80 kg Start</div>
   <div class="week-nav">
     <button class="week-btn" onclick="changeWeek(-1)">← Prev</button>
     <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted2)" id="weekLabel">Week 1</span>
@@ -488,7 +488,7 @@
   <div class="chart-wrap"><div class="chart-title">📉 Body Weight Over Time</div><canvas id="weightChart" height="160"></canvas></div>
   <div class="best-lifts"><div class="best-lifts-title">🏅 Personal Records (All Time)</div><div id="prList"></div></div>
   <div class="progress-grid">
-    <div class="prog-card"><div class="prog-card-label">Starting Weight</div><div class="prog-card-val">76 kg</div><div class="prog-card-sub">Baseline</div></div>
+    <div class="prog-card"><div class="prog-card-label">Starting Weight</div><div class="prog-card-val">80 kg</div><div class="prog-card-sub">Baseline</div></div>
     <div class="prog-card"><div class="prog-card-label">Current Weight</div><div class="prog-card-val" id="currentBW">—</div><div class="prog-card-sub" id="bwChange">No entries yet</div></div>
     <div class="prog-card"><div class="prog-card-label">Target Weight</div><div class="prog-card-val">83 kg</div><div class="prog-card-sub">End of bulk</div></div>
     <div class="prog-card"><div class="prog-card-label">Weeks Tracked</div><div class="prog-card-val" id="weeksTracked">0</div><div class="prog-card-sub">Keep going 💪</div></div>
@@ -601,6 +601,50 @@ const DAYS = [
   { day:'Day 7', label:'Sunday', focus:'Full Rest', exercises:[], warmup:[], rest:true }
 ];
 
+// Independent program for the Weights 2 tab — own days/sets/reps/rest, decoupled from DAYS.
+const DAYS2 = [
+  { day:'Day 1', label:'Monday', focus:'Push — Chest · Shoulders · Triceps', exercises:[
+    { name:'Barbell Bench Press',              sets:4, reps:'6-8',     rest:'2-3 min' },
+    { name:'Incline Dumbbell Press',           sets:3, reps:'8-10',    rest:'2 min' },
+    { name:'Dumbbell Shoulder Press',          sets:3, reps:'8-10',    rest:'2 min' },
+    { name:'Cable Lateral Raise',              sets:3, reps:'12-15',  rest:'60-90 sec' },
+    { name:'Cable Tricep Pushdown',            sets:3, reps:'10-12',  rest:'60-90 sec' },
+    { name:'Overhead Cable Tricep Extension',  sets:3, reps:'10-12',  rest:'60-90 sec' },
+  ]},
+  { day:'Day 2', label:'Tuesday', focus:'Pull — Back · Biceps', exercises:[
+    { name:'Lat Pulldown',                     sets:4, reps:'8-10',    rest:'2 min' },
+    { name:'Chest-Supported Row (machine)',    sets:3, reps:'8-10',    rest:'2 min' },
+    { name:'Seated Cable Row',                 sets:3, reps:'10-12',  rest:'90 sec' },
+    { name:'Face Pulls',                       sets:3, reps:'12-15',  rest:'60-90 sec' },
+    { name:'Barbell/EZ-Bar Curl',              sets:3, reps:'8-10',    rest:'90 sec' },
+    { name:'Incline Dumbbell Curl',            sets:3, reps:'10-12',  rest:'60-90 sec' },
+  ]},
+  { day:'Day 3', label:'Wednesday', focus:'Legs — Quads · Hamstrings · Glutes · Calves', exercises:[
+    { name:'Barbell Back Squat (or Leg Press if joints prefer)', sets:4, reps:'6-8', rest:'2-3 min' },
+    { name:'Romanian Deadlift (dumbbell or barbell)', sets:3, reps:'8-10', rest:'2 min' },
+    { name:'Leg Extension',                    sets:3, reps:'12-15',  rest:'90 sec' },
+    { name:'Lying Leg Curl',                   sets:3, reps:'10-12',  rest:'90 sec' },
+    { name:'Standing Calf Raise',              sets:4, reps:'10-15',  rest:'60-90 sec' },
+  ]},
+  { day:'Day 4', label:'Thursday', focus:'Rest / Active Recovery', exercises:[], rest:true },
+  { day:'Day 5', label:'Friday', focus:'Upper Body — Strength + Arm Focus', exercises:[
+    { name:'Incline Machine Press',            sets:3, reps:'8-10',    rest:'2 min' },
+    { name:'Single-Arm Cable Row',              sets:3, reps:'8-10',    rest:'2 min' },
+    { name:'Dumbbell Shoulder Press',          sets:3, reps:'8-10',    rest:'90 sec' },
+    { name:'Close-Grip Bench Press (triceps)', sets:3, reps:'8-10',    rest:'2 min' },
+    { name:'Hammer Curl',                      sets:3, reps:'10-12',  rest:'90 sec' },
+    { name:'Cable Tricep Kickback',            sets:2, reps:'12-15',  rest:'60 sec' },
+  ]},
+  { day:'Day 6', label:'Saturday', focus:'Lower Body — Volume + Glutes', exercises:[
+    { name:'Bulgarian Split Squat',            sets:3, reps:'8-10/leg', rest:'2 min' },
+    { name:'Glute Push Machine',               sets:3, reps:'10-12',  rest:'90 sec' },
+    { name:'Leg Press (narrow stance)',        sets:3, reps:'10-12',  rest:'2 min' },
+    { name:'Hyperextensions',                  sets:3, reps:'12-15',  rest:'90 sec' },
+    { name:'Seated Calf Raise',                sets:4, reps:'12-15',  rest:'60-90 sec' },
+  ]},
+  { day:'Day 7', label:'Sunday', focus:'Full Rest', exercises:[], rest:true }
+];
+
 const DAILY_ROUTINE = [
   { name:'Chin Tucks', sets:'3×15', desc:'Pull chin straight back, hold 5 sec. Stretch at base of skull.', target:'Forward Head' },
   { name:'Suboccipital Release', sets:'90 sec', desc:'Fingers at base of skull, gentle upward pressure. Breathe deeply.', target:'Forward Head' },
@@ -693,8 +737,8 @@ function getDayData2(dayIdx) {
   if (!state.weeks2[weekKey()]) state.weeks2[weekKey()] = {};
   if (!state.weeks2[weekKey()][dayIdx]) {
     state.weeks2[weekKey()][dayIdx] = {
-      names: DAYS[dayIdx].exercises.map(ex => ex.name),
-      weights: DAYS[dayIdx].exercises.map(() => '')
+      names: DAYS2[dayIdx].exercises.map(ex => ex.name),
+      weights: DAYS2[dayIdx].exercises.map(() => '')
     };
   }
   return state.weeks2[weekKey()][dayIdx];
@@ -1000,7 +1044,7 @@ function renderWeights2() {
   const container = document.getElementById('weights2Container');
   if (!container) return;
   container.innerHTML = '';
-  DAYS.forEach((day, di) => {
+  DAYS2.forEach((day, di) => {
     if (day.rest) return;
     const data = getDayData2(di);
     const card = document.createElement('div');
@@ -1016,6 +1060,7 @@ function renderWeights2() {
           const pr = state.pr2[name]||0;
           return `<div class="wl-item">
             <input class="wl-name-input" type="text" value="${name.replace(/"/g,'&quot;')}" oninput="updateWeightName2(${di},${ei},this)" id="wn2-${currentWeek}-${di}-${ei}">
+            <div class="wl-sets-info">${ex.sets}×${ex.reps} · ${ex.rest}</div>
             <input class="wl-input" type="number" min="0" max="500" step="2.5" placeholder="0" value="${data.weights[ei]}" oninput="updateWeight2(${di},${ei},this)" id="wi2-${currentWeek}-${di}-${ei}">
             <div class="wl-unit">kg</div>
             <div class="wl-pr ${data.weights[ei]&&parseFloat(data.weights[ei])>=pr&&pr>0?'show':''}" id="pr2-${currentWeek}-${di}-${ei}">PR 🏅</div>
