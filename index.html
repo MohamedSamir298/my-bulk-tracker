@@ -245,6 +245,22 @@
   .supp-desc{font-size:11px;color:var(--muted2);margin-top:2px;line-height:1.5;}
   .supp-dose{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--blue);white-space:nowrap;text-align:right;}
 
+  /* MY LIFTS */
+  .mylift-add{display:flex;gap:8px;margin-bottom:16px;}
+  .mylift-add input{flex:1;background:#1a1a1a;border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:13px;padding:9px 12px;outline:none;}
+  .mylift-add input:focus{border-color:var(--accent);}
+  .mylift-add button{background:var(--accent);color:#000;font-weight:700;font-size:12px;padding:9px 14px;border:none;border-radius:4px;cursor:pointer;letter-spacing:1px;white-space:nowrap;}
+  .mylift-card{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;overflow:hidden;}
+  .mylift-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card2);border-bottom:1px solid var(--border);}
+  .mylift-name{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;}
+  .mylift-best{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);}
+  .mylift-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px;}
+  .mylift-body{padding:12px 16px;}
+  .mylift-entry{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .mylift-entry input[type=date],.mylift-entry input[type=number]{background:#1a1a1a;border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:7px 10px;outline:none;}
+  .mylift-entry input[type=date]{flex:2;}
+  .mylift-entry input[type=number]{flex:1;color:var(--blue);}
+
   /* MISC */
   .callout{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--purple);border-radius:6px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#aaa;line-height:1.6;}
   .callout strong{color:var(--purple);}
@@ -300,6 +316,7 @@
   <div class="nav-tab" onclick="showPage('alts')">🔄 Swaps</div>
   <div class="nav-tab" onclick="showPage('checklist')">✅ List</div>
   <div class="nav-tab" onclick="showPage('weights')">🏋️ Weights</div>
+  <div class="nav-tab" onclick="showPage('mylifts')">📒 My Lifts</div>
   <div class="nav-tab" onclick="showPage('fuel')">🍽 Fuel</div>
   <div class="nav-tab" onclick="showPage('supplements')">💊 Supps</div>
   <div class="nav-tab" onclick="showPage('progress')">📈 Progress</div>
@@ -419,6 +436,17 @@
   <div class="sec-title"><span class="pill">02</span> Weight Log</div>
   <p style="font-size:12px;color:var(--muted2);margin-bottom:16px;">🏅 PR badge when you beat your best. <span style="color:var(--teal)">Teal = posture-priority.</span></p>
   <div id="weightsContainer"></div>
+</div>
+
+<!-- MY LIFTS PAGE -->
+<div class="page" id="page-mylifts">
+  <div class="sec-title"><span class="pill">04</span> My Lifts</div>
+  <div class="callout"><strong>📒 What this is</strong> — your own list of go-to exercises with their full weight history, kept separate from the Weights tab. Swapping exercises on the Swaps page never touches this — add an exercise once here and its history is permanently tied to its name.</div>
+  <div class="mylift-add">
+    <input type="text" id="mylistNewName" placeholder="e.g. Dumbbell Bench Press">
+    <button onclick="addCustomExercise()">+ ADD EXERCISE</button>
+  </div>
+  <div id="mylistContainer"></div>
 </div>
 
 <!-- FUEL PAGE -->
@@ -676,6 +704,8 @@ if (!state.fuel) state.fuel = {};
 if (!state.fuelSwaps) state.fuelSwaps = {};
 if (!state.supps) state.supps = {};
 if (!state.suppStreak) state.suppStreak = {};
+if (!state.customExercises) state.customExercises = [];
+if (!state.customLog) state.customLog = {};
 
 function save() { localStorage.setItem('bulkTracker', JSON.stringify(state)); }
 function weekKey() { return 'w' + currentWeek; }
@@ -932,6 +962,84 @@ function toggleSuppStreakDay(key, el) {
   if (state.suppStreak[key]) { delete state.suppStreak[key]; el.classList.remove('done'); el.textContent = key.slice(8); }
   else { state.suppStreak[key] = true; el.classList.add('done'); el.textContent = '✓'; }
   save();
+}
+
+// ============================================================
+// MY LIFTS (standalone — independent of the day-based Weights tab)
+// ============================================================
+function addCustomExercise() {
+  const input = document.getElementById('mylistNewName');
+  const name = input.value.trim();
+  if (!name) return;
+  if (state.customExercises.includes(name)) { input.value=''; renderMyLifts(); return; }
+  state.customExercises.push(name);
+  if (!state.customLog[name]) state.customLog[name] = [];
+  input.value = '';
+  save();
+  renderMyLifts();
+}
+
+function deleteCustomExercise(name) {
+  state.customExercises = state.customExercises.filter(n => n !== name);
+  delete state.customLog[name];
+  save();
+  renderMyLifts();
+}
+
+function addCustomLift(name) {
+  const dateEl = document.getElementById(`mlDate-${name}`);
+  const valEl = document.getElementById(`mlVal-${name}`);
+  const d = dateEl.value, v = parseFloat(valEl.value);
+  if (!d || !v) return;
+  if (!state.customLog[name]) state.customLog[name] = [];
+  state.customLog[name].push({ date: d, weight: v });
+  state.customLog[name].sort((a,b) => a.date.localeCompare(b.date));
+  valEl.value = '';
+  save();
+  renderMyLifts();
+}
+
+function deleteCustomLift(name, idx) {
+  state.customLog[name].splice(idx, 1);
+  save();
+  renderMyLifts();
+}
+
+function renderMyLifts() {
+  const container = document.getElementById('mylistContainer');
+  if (!container) return;
+  if (!state.customExercises.length) {
+    container.innerHTML = '<div class="empty-state">No exercises yet — add one above 📒</div>';
+    return;
+  }
+  container.innerHTML = state.customExercises.map(name => {
+    const log = state.customLog[name] || [];
+    const best = log.length ? Math.max(...log.map(e=>e.weight)) : 0;
+    const logHtml = log.length ? log.map((entry, idx) => {
+      const prev = idx > 0 ? log[idx-1].weight : null;
+      const diff = prev !== null ? (entry.weight - prev).toFixed(1) : null;
+      const dh = diff !== null ? `<span class="bw-diff ${diff>=0?'up':'down'}">${diff>=0?'+':''}${diff} kg</span>` : '';
+      return `<div class="bw-row"><span class="bw-date">${entry.date}</span><div style="display:flex;align-items:center;gap:10px">${dh}<span class="bw-val">${entry.weight}</span><span style="font-size:11px;color:var(--muted2)">kg</span><button class="bw-del" onclick="deleteCustomLift('${name.replace(/'/g,"\\'")}',${idx})">✕</button></div></div>`;
+    }).reverse().join('') : '<div class="empty-state" style="padding:14px">No entries yet</div>';
+    return `<div class="mylift-card">
+      <div class="mylift-header">
+        <div class="mylift-name">${name}</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          ${best ? `<div class="mylift-best">🏅 ${best} kg</div>` : ''}
+          <button class="mylift-del" onclick="deleteCustomExercise('${name.replace(/'/g,"\\'")}')">✕</button>
+        </div>
+      </div>
+      <div class="mylift-body">
+        <div class="mylift-entry">
+          <input type="date" id="mlDate-${name}" value="${todayStr()}">
+          <input type="number" id="mlVal-${name}" placeholder="0" step="2.5" min="0" max="500">
+          <span style="font-size:12px;color:var(--muted2)">kg</span>
+          <button class="bw-btn" onclick="addCustomLift('${name.replace(/'/g,"\\'")}')">LOG</button>
+        </div>
+        <div class="bw-log">${logHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ============================================================
@@ -1202,12 +1310,13 @@ function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
-  const tabs=['posture','alts','checklist','weights','fuel','supplements','progress'];
+  const tabs=['posture','alts','checklist','weights','mylifts','fuel','supplements','progress'];
   document.querySelectorAll('.nav-tab')[tabs.indexOf(name)].classList.add('active');
   if(name==='progress'){renderBWLog();drawChart();renderPRList();updateBWStats();updateStats();}
   if(name==='posture'){renderDailyRoutine();renderPostureStreak();}
   if(name==='fuel'){renderFuel();}
   if(name==='supplements'){renderSupplements();}
+  if(name==='mylifts'){renderMyLifts();}
 }
 
 // ============================================================
@@ -1275,7 +1384,7 @@ async function pullFromGist() {
     if (!raw) throw new Error('No data file in gist');
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
-      state = { weeks:{}, bw:[], pr:{}, swaps:{}, routine:{}, postureStreak:{}, fuel:{}, fuelSwaps:{}, supps:{}, suppStreak:{}, ...parsed };
+      state = { weeks:{}, bw:[], pr:{}, swaps:{}, routine:{}, postureStreak:{}, fuel:{}, fuelSwaps:{}, supps:{}, suppStreak:{}, customExercises:[], customLog:{}, ...parsed };
       save();
     }
     const now = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
@@ -1348,6 +1457,7 @@ function renderAll() {
   if (activePage === 'progress') { renderBWLog(); drawChart(); renderPRList(); updateBWStats(); }
   if (activePage === 'fuel') { renderFuel(); }
   if (activePage === 'supplements') { renderSupplements(); }
+  if (activePage === 'mylifts') { renderMyLifts(); }
 }
 
 // ============================================================
