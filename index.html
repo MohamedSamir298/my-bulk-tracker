@@ -229,6 +229,22 @@
   .fuel-remain-label{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted2);margin-top:2px;}
   .fuel-streak-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;}
 
+  /* SUPPLEMENTS */
+  .supp-group-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--blue);margin:16px 0 8px;}
+  .supp-list{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;}
+  .supp-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #141414;cursor:pointer;transition:background .15s;}
+  .supp-item:last-child{border-bottom:none;}
+  .supp-item:hover{background:#161616;}
+  .supp-check{width:22px;height:22px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s;}
+  .supp-check.done{background:var(--blue);border-color:var(--blue);}
+  .supp-check .stick{display:none;color:#000;font-size:11px;font-weight:900;}
+  .supp-check.done .stick{display:block;}
+  .supp-info{flex:1;}
+  .supp-name{font-size:13px;font-weight:600;}
+  .supp-name.done-text{text-decoration:line-through;color:var(--muted);}
+  .supp-desc{font-size:11px;color:var(--muted2);margin-top:2px;line-height:1.5;}
+  .supp-dose{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--blue);white-space:nowrap;text-align:right;}
+
   /* MISC */
   .callout{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--purple);border-radius:6px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#aaa;line-height:1.6;}
   .callout strong{color:var(--purple);}
@@ -285,6 +301,7 @@
   <div class="nav-tab" onclick="showPage('checklist')">✅ List</div>
   <div class="nav-tab" onclick="showPage('weights')">🏋️ Weights</div>
   <div class="nav-tab" onclick="showPage('fuel')">🍽 Fuel</div>
+  <div class="nav-tab" onclick="showPage('supplements')">💊 Supps</div>
   <div class="nav-tab" onclick="showPage('progress')">📈 Progress</div>
 </div>
 
@@ -437,6 +454,22 @@
     <div class="posture-progress-label">📅 Calorie Target Streak — This Week</div>
     <div class="posture-days-grid" id="fuelStreak"></div>
   </div>
+</div>
+
+<!-- SUPPLEMENTS PAGE -->
+<div class="page" id="page-supplements">
+  <div class="sec-title"><span class="pill" style="background:var(--blue);color:#000">SUPP</span> Daily Supplements</div>
+  <div class="callout"><strong>💊 How to run this stack</strong> — take the fat-soluble ones (D3+K2, Omega 3) with a meal that actually has some fat in it, or you waste most of the absorption. Creatine is dosed daily regardless of training days — consistency matters more than timing. AlphaMan is split into 2 tablets/day and should be cycled (8–12 weeks on, then a break) rather than run forever. Magnesium works best last, in the evening, for sleep and recovery.</div>
+  <div class="posture-progress-wrap">
+    <div class="posture-progress-label">📅 Full Stack Streak — This Week</div>
+    <div class="posture-days-grid" id="suppStreak"></div>
+  </div>
+  <div class="supp-group-title">🌅 Morning</div>
+  <div class="supp-list" id="suppListAM"></div>
+  <div class="supp-group-title">⏱ Anytime / Around Training</div>
+  <div class="supp-list" id="suppListANY"></div>
+  <div class="supp-group-title">🌙 Evening</div>
+  <div class="supp-list" id="suppListPM"></div>
 </div>
 
 <!-- PROGRESS PAGE -->
@@ -617,6 +650,17 @@ const FUEL_MEALS = [
   ]},
 ];
 
+const SUPPLEMENTS = [
+  { name:'Organic Nation D3+K2', dose:'1 capsule', time:'AM', desc:'With a fat-containing meal — needed for absorption.' },
+  { name:'Muscle Seed Vitamin C-1000', dose:'1 tablet · 1000mg', time:'AM', desc:'With breakfast. RDA is only ~90mg, so this one tablet fully covers it.' },
+  { name:'Muscle Seed AlphaMan (AM dose)', dose:'1 tablet', time:'AM', desc:'1 of 2 daily tablets — with a meal. Cycle 8–12 weeks on, then take a break.' },
+  { name:'Creatine Monohydrate', dose:'5g', time:'ANY', desc:'Any time, every day incl. rest days — mix in water or your shake.' },
+  { name:'Redrex Whey Protein', dose:'1 scoop · 24g protein', time:'ANY', desc:'Post-workout or wherever it fits to hit your daily protein target.' },
+  { name:'Muscle Seed AlphaMan (PM dose)', dose:'1 tablet', time:'PM', desc:'2 of 2 daily tablets — with dinner.' },
+  { name:'Futura Omega 3', dose:'1–3 capsules', time:'PM', desc:'With dinner — check the 500mg vs 1000mg strength on your bottle for the exact count.' },
+  { name:'Muscle Seed Magnesium Complex', dose:'1 tablet · 150mg elemental Mg', time:'PM', desc:'Evening — supports sleep and recovery. Don’t exceed 2/day.' },
+];
+
 // ============================================================
 // STATE
 // ============================================================
@@ -630,6 +674,8 @@ if (!state.routine) state.routine = {};
 if (!state.postureStreak) state.postureStreak = {};
 if (!state.fuel) state.fuel = {};
 if (!state.fuelSwaps) state.fuelSwaps = {};
+if (!state.supps) state.supps = {};
+if (!state.suppStreak) state.suppStreak = {};
 
 function save() { localStorage.setItem('bulkTracker', JSON.stringify(state)); }
 function weekKey() { return 'w' + currentWeek; }
@@ -825,6 +871,67 @@ function renderFuelStreak() {
     const isToday = key === todayStr();
     return `<div class="posture-day-dot ${done?'done':''}">${done?'✓':d}${isToday?'·':''}</div>`;
   }).join('');
+}
+
+// ============================================================
+// SUPPLEMENTS
+// ============================================================
+function getTodaySupps() {
+  const key = todayStr();
+  if (!state.supps[key]) state.supps[key] = SUPPLEMENTS.map(()=>false);
+  return state.supps[key];
+}
+
+function renderSupplements() {
+  const data = getTodaySupps();
+  ['AM','ANY','PM'].forEach(t => {
+    const el = document.getElementById('suppList'+t);
+    if (!el) return;
+    const items = SUPPLEMENTS.map((s,i)=>({s,i})).filter(o=>o.s.time===t);
+    el.innerHTML = items.map(({s,i}) => `
+      <div class="supp-item" onclick="toggleSupp(${i},this)">
+        <div class="supp-check ${data[i]?'done':''}"><span class="stick">✓</span></div>
+        <div class="supp-info">
+          <div class="supp-name ${data[i]?'done-text':''}">${s.name}</div>
+          <div class="supp-desc">${s.desc}</div>
+        </div>
+        <div class="supp-dose">${s.dose}</div>
+      </div>`).join('');
+  });
+  renderSuppStreak();
+}
+
+function toggleSupp(i, el) {
+  const data = getTodaySupps();
+  data[i] = !data[i];
+  el.querySelector('.supp-check').classList.toggle('done');
+  el.querySelector('.supp-name').classList.toggle('done-text');
+  if (data.every(Boolean)) state.suppStreak[todayStr()] = true;
+  else delete state.suppStreak[todayStr()];
+  save();
+  renderSuppStreak();
+}
+
+function renderSuppStreak() {
+  const wrap = document.getElementById('suppStreak');
+  if (!wrap) return;
+  const days = ['Mo','Tu','We','Th','Fr','Sa','Su'];
+  const today = new Date();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((today.getDay()+6)%7));
+  wrap.innerHTML = days.map((d,i) => {
+    const date = new Date(monday); date.setDate(monday.getDate()+i);
+    const key = date.toISOString().split('T')[0];
+    const done = !!state.suppStreak[key];
+    const isToday = key === todayStr();
+    return `<div class="posture-day-dot ${done?'done':''}" onclick="toggleSuppStreakDay('${key}',this)">${done?'✓':d}${isToday?'·':''}</div>`;
+  }).join('');
+}
+
+function toggleSuppStreakDay(key, el) {
+  if (state.suppStreak[key]) { delete state.suppStreak[key]; el.classList.remove('done'); el.textContent = key.slice(8); }
+  else { state.suppStreak[key] = true; el.classList.add('done'); el.textContent = '✓'; }
+  save();
 }
 
 // ============================================================
@@ -1095,11 +1202,12 @@ function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
-  const tabs=['posture','alts','checklist','weights','fuel','progress'];
+  const tabs=['posture','alts','checklist','weights','fuel','supplements','progress'];
   document.querySelectorAll('.nav-tab')[tabs.indexOf(name)].classList.add('active');
   if(name==='progress'){renderBWLog();drawChart();renderPRList();updateBWStats();updateStats();}
   if(name==='posture'){renderDailyRoutine();renderPostureStreak();}
   if(name==='fuel'){renderFuel();}
+  if(name==='supplements'){renderSupplements();}
 }
 
 // ============================================================
@@ -1167,7 +1275,7 @@ async function pullFromGist() {
     if (!raw) throw new Error('No data file in gist');
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
-      state = { weeks:{}, bw:[], pr:{}, swaps:{}, routine:{}, postureStreak:{}, fuel:{}, fuelSwaps:{}, ...parsed };
+      state = { weeks:{}, bw:[], pr:{}, swaps:{}, routine:{}, postureStreak:{}, fuel:{}, fuelSwaps:{}, supps:{}, suppStreak:{}, ...parsed };
       save();
     }
     const now = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
@@ -1239,6 +1347,7 @@ function renderAll() {
   const activePage = document.querySelector('.page.active')?.id?.replace('page-','');
   if (activePage === 'progress') { renderBWLog(); drawChart(); renderPRList(); updateBWStats(); }
   if (activePage === 'fuel') { renderFuel(); }
+  if (activePage === 'supplements') { renderSupplements(); }
 }
 
 // ============================================================
