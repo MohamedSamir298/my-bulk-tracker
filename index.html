@@ -299,8 +299,6 @@
 
 <div class="nav">
   <div class="nav-tab active" onclick="showPage('posture')">🧍 Posture</div>
-  <div class="nav-tab" onclick="showPage('alts')">🔄 Swaps</div>
-  <div class="nav-tab" onclick="showPage('checklist')">✅ List</div>
   <div class="nav-tab" onclick="showPage('weights')">🏋️ Weights</div>
   <div class="nav-tab" onclick="showPage('weights2')">🆕 Weights 2</div>
   <div class="nav-tab" onclick="showPage('fuel')">🍽 Fuel</div>
@@ -402,19 +400,6 @@
   <div class="stretch-card"><div class="stretch-name">Levator Scapulae Stretch</div><div class="stretch-desc">Tilt ear toward shoulder, rotate chin down 45°, gentle hand pressure. Each side. Always tight in tall people.</div><div class="stretch-duration">45 sec each side · Daily</div></div>
   <div class="stretch-card"><div class="stretch-name">Wall Angels</div><div class="stretch-desc">Back flat against wall, arms in goalpost. Slide up overhead keeping full contact. If you lose contact — that's your mobility deficit.</div><div class="stretch-duration">3×10 reps · Daily warm-up</div></div>
   <div class="stretch-card"><div class="stretch-name">Deep Neck Flexor Hold</div><div class="stretch-desc">Lie flat. Tiny chin nod toward chest. Hold 10 seconds. Reactivates deep neck flexors switched off by forward head posture.</div><div class="stretch-duration">10 sec × 10 reps · Daily</div></div>
-</div>
-
-<!-- ALTS PAGE -->
-<div class="page" id="page-alts">
-  <div class="sec-title"><span class="pill" style="background:var(--purple);color:#fff">00</span> Exercise Swaps</div>
-  <div class="callout"><strong>🔄 Swap</strong> any exercise for an alternative. <span style="color:var(--teal)">🧍 Teal options</span> are posture-priority picks.</div>
-  <div id="altsContainer"></div>
-</div>
-
-<!-- CHECKLIST PAGE -->
-<div class="page" id="page-checklist">
-  <div class="sec-title"><span class="pill">01</span> Weekly Checklist</div>
-  <div id="checklistContainer"></div>
 </div>
 
 <!-- WEIGHTS PAGE -->
@@ -722,7 +707,7 @@ function changeWeek(d) {
   currentWeek = Math.max(1, Math.min(16, currentWeek + d));
   document.getElementById('weekNum').textContent = currentWeek;
   document.getElementById('weekLabel').textContent = 'Week ' + currentWeek;
-  renderChecklist(); renderWeights(); renderWeights2(); updateStats();
+  renderWeights(); renderWeights2(); updateStats();
 }
 
 // ============================================================
@@ -957,146 +942,9 @@ function toggleSuppStreakDay(key, el) {
   save();
 }
 
-// ============================================================
-// ALTS
-// ============================================================
-function renderAlts() {
-  const container = document.getElementById('altsContainer');
-  container.innerHTML = '';
-  DAYS.forEach((day, di) => {
-    if (day.rest) return;
-    const card = document.createElement('div');
-    card.className = 'alt-day';
-    card.innerHTML = `
-      <div class="alt-day-header" onclick="toggleDay(this)">
-        <div><div class="alt-day-title">${day.day} — ${day.label}</div><div class="alt-day-focus">${day.focus}</div></div>
-        <div class="toggle-icon">▼</div>
-      </div>
-      <div class="collapsible">
-        ${day.exercises.map((ex,ei) => {
-          const swapped = !!state.swaps[swapKey(di,ei)];
-          const current = activeName(di,ei);
-          const isPostureCurrent = isPostureEx(current);
-          const allOptions = [ex.name, ...ex.alts];
-          return `<div class="alt-ex-block">
-            <div class="alt-ex-header">
-              <div class="alt-ex-name ${swapped?'swapped':''}">${swapped?'🔄 ':''}${current}${isPostureCurrent?' 🧍':''}</div>
-              <div class="alt-ex-badge ${swapped?'badge-swapped':isPostureCurrent?'badge-posture':'badge-active'}">${swapped?'SWAPPED':isPostureCurrent?'POSTURE':'ORIGINAL'}</div>
-            </div>
-            <div class="alt-list">
-              ${allOptions.map(opt => {
-                const isCurrent = opt === current;
-                const isOriginal = opt === ex.name;
-                const isPostureOpt = isPostureEx(opt);
-                let btnClass = isCurrent ? 'btn-current' : isPostureOpt ? 'btn-posture' : 'btn-use';
-                let btnLabel = isCurrent ? '✓ Active' : isPostureOpt ? '🧍 Use' : 'Use This';
-                if (swapped && isOriginal && !isCurrent) { btnClass='btn-restore'; btnLabel='Restore'; }
-                const clickAttr = isCurrent ? '' : `onclick="swapExercise(${di},${ei},'${opt.replace(/'/g,"\\'")}',this)"`;
-                return `<div class="alt-option ${isCurrent?'is-current':''} ${isPostureOpt&&!isCurrent?'is-posture':''}">
-                  <span class="alt-option-name">${opt}${isOriginal?' <span style="font-size:10px;color:var(--muted2)">(original)</span>':''}${isPostureOpt?'<span class="posture-star"> 🧍</span>':''}</span>
-                  <button class="alt-swap-btn ${btnClass}" ${clickAttr}>${btnLabel}</button>
-                </div>`;
-              }).join('')}
-            </div>
-          </div>`;
-        }).join('')}
-      </div>`;
-    container.appendChild(card);
-  });
-}
-
-function swapExercise(di, ei, newName) {
-  if (newName === DAYS[di].exercises[ei].name) delete state.swaps[swapKey(di,ei)];
-  else state.swaps[swapKey(di,ei)] = newName;
-  save(); renderAlts(); renderChecklist(); renderWeights();
-}
-
-// ============================================================
-// CHECKLIST
-// ============================================================
-function renderChecklist() {
-  const container = document.getElementById('checklistContainer');
-  container.innerHTML = '';
-  DAYS.forEach((day, di) => {
-    const data = getDayData(di);
-    const card = document.createElement('div');
-    card.className = 'checklist-day';
-    if (day.rest) {
-      card.innerHTML = `<div class="checklist-day-header"><div><div class="day-title" style="color:var(--muted2)">${day.day} — ${day.label}</div><div class="day-meta">${day.focus}</div></div><div class="day-prog" style="color:var(--muted2)">REST</div></div><div style="padding:12px 16px;font-size:12px;color:var(--muted2);">Recovery day. Do your 5-min posture routine! 🛌</div>`;
-    } else {
-      const done = data.checked.filter(Boolean).length;
-      const total = day.exercises.length;
-      const allDone = done === total;
-      const warmupHtml = (day.warmup && day.warmup.length) ? `
-        <div class="warmup-block">
-          <div class="warmup-header" onclick="toggleWarmup(this)">
-            <div class="warmup-label">🔥 Warm-Up (${day.warmup.length} exercises · ~5 min)</div>
-            <div class="warmup-toggle">▼</div>
-          </div>
-          <div class="warmup-items" style="display:none">
-            ${day.warmup.map(w=>`
-              <div class="warmup-item">
-                <div class="warmup-dot"></div>
-                <div style="flex:1">
-                  <div style="display:flex;align-items:center;justify-content:space-between">
-                    <span class="warmup-name">${w.name}</span>
-                    <span class="warmup-sets">${w.sets}</span>
-                  </div>
-                  <div class="warmup-tip">${w.tip}</div>
-                </div>
-              </div>`).join('')}
-          </div>
-        </div>` : '';
-      card.innerHTML = `
-        <div class="checklist-day-header" onclick="toggleDay(this)">
-          <div><div class="day-title" style="color:${allDone?'var(--green)':'var(--text)'}">${day.day} — ${day.label}${allDone?' ✓':''}</div><div class="day-meta">${day.focus}</div></div>
-          <div style="display:flex;align-items:center;gap:10px"><div class="day-prog">${done}/${total}</div><div class="toggle-icon">▼</div></div>
-        </div>
-        <div class="collapsible">
-          ${warmupHtml}
-          <div class="checklist-items">
-            ${day.exercises.map((ex,ei)=>{
-              const name = activeName(di,ei);
-              const isAlt = !!state.swaps[swapKey(di,ei)];
-              const isPost = isPostureEx(name);
-              return `<div class="check-item ${data.checked[ei]?'done':''}" onclick="toggleCheck(${di},${ei},this)">
-                <div class="check-box"><span class="check-tick">✓</span></div>
-                <span class="check-label ${isAlt?'is-alt':isPost?'is-posture-ex':''}">${isAlt?'🔄 ':isPost?'🧍 ':''}${name}</span>
-                <span class="check-sets">${ex.sets}</span>
-              </div>`;
-            }).join('')}
-          </div>
-        </div>`;
-    }
-    container.appendChild(card);
-  });
-}
-
 function toggleDay(header) {
   header.parentElement.classList.toggle('collapsed');
   header.querySelector('.toggle-icon').textContent = header.parentElement.classList.contains('collapsed') ? '▶' : '▼';
-}
-
-function toggleWarmup(header) {
-  const items = header.nextElementSibling;
-  const icon = header.querySelector('.warmup-toggle');
-  const isHidden = items.style.display === 'none';
-  items.style.display = isHidden ? 'block' : 'none';
-  icon.textContent = isHidden ? '▲' : '▼';
-}
-
-function toggleCheck(di, ei, el) {
-  const data = getDayData(di);
-  data.checked[ei] = !data.checked[ei];
-  el.classList.toggle('done');
-  save();
-  const total = DAYS[di].exercises.length;
-  const done = data.checked.filter(Boolean).length;
-  el.closest('.checklist-day').querySelector('.day-prog').textContent = `${done}/${total}`;
-  const title = el.closest('.checklist-day').querySelector('.day-title');
-  if (done===total){title.style.color='var(--green)';title.textContent=`${DAYS[di].day} — ${DAYS[di].label} ✓`;}
-  else{title.style.color='var(--text)';title.textContent=`${DAYS[di].day} — ${DAYS[di].label}`;}
-  updateStats();
 }
 
 // ============================================================
@@ -1275,7 +1123,7 @@ function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
-  const tabs=['posture','alts','checklist','weights','weights2','fuel','supplements','progress'];
+  const tabs=['posture','weights','weights2','fuel','supplements','progress'];
   document.querySelectorAll('.nav-tab')[tabs.indexOf(name)].classList.add('active');
   if(name==='progress'){renderBWLog();drawChart();renderPRList();updateBWStats();updateStats();}
   if(name==='posture'){renderDailyRoutine();renderPostureStreak();}
@@ -1417,7 +1265,7 @@ async function saveGistConfig() {
 
 function renderAll() {
   renderDailyRoutine(); renderPostureStreak();
-  renderAlts(); renderChecklist(); renderWeights(); renderWeights2(); updateStats();
+  renderWeights(); renderWeights2(); updateStats();
   const activePage = document.querySelector('.page.active')?.id?.replace('page-','');
   if (activePage === 'progress') { renderBWLog(); drawChart(); renderPRList(); updateBWStats(); }
   if (activePage === 'fuel') { renderFuel(); }
