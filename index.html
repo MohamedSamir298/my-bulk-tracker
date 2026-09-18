@@ -140,6 +140,8 @@
   .wl-unit{font-size:11px;color:var(--muted);}
   .wl-pr{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--accent2);background:#1a0d00;border:1px solid #3a1800;border-radius:3px;padding:2px 6px;white-space:nowrap;display:none;}
   .wl-pr.show{display:inline-block;}
+  .wl-name-input{background:#161616;border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:13px;padding:6px 8px;flex:1;min-width:0;outline:none;transition:.15s;}
+  .wl-name-input:focus{border-color:var(--accent);}
 
   /* PROGRESS */
   .progress-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
@@ -300,6 +302,7 @@
   <div class="nav-tab" onclick="showPage('alts')">🔄 Swaps</div>
   <div class="nav-tab" onclick="showPage('checklist')">✅ List</div>
   <div class="nav-tab" onclick="showPage('weights')">🏋️ Weights</div>
+  <div class="nav-tab" onclick="showPage('weights2')">🆕 Weights 2</div>
   <div class="nav-tab" onclick="showPage('fuel')">🍽 Fuel</div>
   <div class="nav-tab" onclick="showPage('supplements')">💊 Supps</div>
   <div class="nav-tab" onclick="showPage('progress')">📈 Progress</div>
@@ -419,6 +422,13 @@
   <div class="sec-title"><span class="pill">02</span> Weight Log</div>
   <p style="font-size:12px;color:var(--muted2);margin-bottom:16px;">🏅 PR badge when you beat your best. <span style="color:var(--teal)">Teal = posture-priority.</span></p>
   <div id="weightsContainer"></div>
+</div>
+
+<!-- WEIGHTS 2 PAGE -->
+<div class="page" id="page-weights2">
+  <div class="sec-title"><span class="pill">02b</span> Weight Log 2</div>
+  <p style="font-size:12px;color:var(--muted2);margin-bottom:16px;">🆕 A second, independent weight log with a blank history. Type directly over any exercise name to change it — no swap page needed. 🏅 PR badge when you beat your best.</p>
+  <div id="weights2Container"></div>
 </div>
 
 <!-- FUEL PAGE -->
@@ -669,6 +679,8 @@ let state = JSON.parse(localStorage.getItem('bulkTracker') || '{}');
 if (!state.weeks) state.weeks = {};
 if (!state.bw) state.bw = [];
 if (!state.pr) state.pr = {};
+if (!state.weeks2) state.weeks2 = {};
+if (!state.pr2) state.pr2 = {};
 if (!state.swaps) state.swaps = {};
 if (!state.routine) state.routine = {};
 if (!state.postureStreak) state.postureStreak = {};
@@ -692,6 +704,17 @@ function getDayData(dayIdx) {
   return state.weeks[weekKey()][dayIdx];
 }
 
+function getDayData2(dayIdx) {
+  if (!state.weeks2[weekKey()]) state.weeks2[weekKey()] = {};
+  if (!state.weeks2[weekKey()][dayIdx]) {
+    state.weeks2[weekKey()][dayIdx] = {
+      names: DAYS[dayIdx].exercises.map(ex => ex.name),
+      weights: DAYS[dayIdx].exercises.map(() => '')
+    };
+  }
+  return state.weeks2[weekKey()][dayIdx];
+}
+
 // ============================================================
 // WEEK NAV
 // ============================================================
@@ -699,7 +722,7 @@ function changeWeek(d) {
   currentWeek = Math.max(1, Math.min(16, currentWeek + d));
   document.getElementById('weekNum').textContent = currentWeek;
   document.getElementById('weekLabel').textContent = 'Week ' + currentWeek;
-  renderChecklist(); renderWeights(); updateStats();
+  renderChecklist(); renderWeights(); renderWeights2(); updateStats();
 }
 
 // ============================================================
@@ -1123,6 +1146,56 @@ function updateWeight(di, ei, input) {
 }
 
 // ============================================================
+// WEIGHTS 2 (independent — editable names, blank history)
+// ============================================================
+function renderWeights2() {
+  const container = document.getElementById('weights2Container');
+  if (!container) return;
+  container.innerHTML = '';
+  DAYS.forEach((day, di) => {
+    if (day.rest) return;
+    const data = getDayData2(di);
+    const card = document.createElement('div');
+    card.className = 'wl-day';
+    card.innerHTML = `
+      <div class="wl-day-header" onclick="toggleDay(this)">
+        <div><div class="day-title">${day.day} — ${day.label}</div><div class="day-meta">${day.focus}</div></div>
+        <div class="toggle-icon">▼</div>
+      </div>
+      <div class="collapsible wl-items">
+        ${day.exercises.map((ex,ei)=>{
+          const name = data.names[ei];
+          const pr = state.pr2[name]||0;
+          return `<div class="wl-item">
+            <input class="wl-name-input" type="text" value="${name.replace(/"/g,'&quot;')}" oninput="updateWeightName2(${di},${ei},this)" id="wn2-${currentWeek}-${di}-${ei}">
+            <input class="wl-input" type="number" min="0" max="500" step="2.5" placeholder="0" value="${data.weights[ei]}" oninput="updateWeight2(${di},${ei},this)" id="wi2-${currentWeek}-${di}-${ei}">
+            <div class="wl-unit">kg</div>
+            <div class="wl-pr ${data.weights[ei]&&parseFloat(data.weights[ei])>=pr&&pr>0?'show':''}" id="pr2-${currentWeek}-${di}-${ei}">PR 🏅</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function updateWeightName2(di, ei, input) {
+  getDayData2(di).names[ei] = input.value;
+  save();
+}
+
+function updateWeight2(di, ei, input) {
+  const data = getDayData2(di);
+  const name = data.names[ei];
+  const val = parseFloat(input.value)||0;
+  data.weights[ei] = input.value;
+  const prevPr = state.pr2[name]||0;
+  const prBadge = document.getElementById(`pr2-${currentWeek}-${di}-${ei}`);
+  if (val>0&&val>=prevPr){if(val>prevPr)state.pr2[name]=val;if(prBadge)prBadge.classList.add('show');}
+  else{if(prBadge)prBadge.classList.remove('show');}
+  save();
+}
+
+// ============================================================
 // BODY WEIGHT
 // ============================================================
 function addBodyWeight(){
@@ -1202,12 +1275,13 @@ function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
-  const tabs=['posture','alts','checklist','weights','fuel','supplements','progress'];
+  const tabs=['posture','alts','checklist','weights','weights2','fuel','supplements','progress'];
   document.querySelectorAll('.nav-tab')[tabs.indexOf(name)].classList.add('active');
   if(name==='progress'){renderBWLog();drawChart();renderPRList();updateBWStats();updateStats();}
   if(name==='posture'){renderDailyRoutine();renderPostureStreak();}
   if(name==='fuel'){renderFuel();}
   if(name==='supplements'){renderSupplements();}
+  if(name==='weights2'){renderWeights2();}
 }
 
 // ============================================================
@@ -1275,7 +1349,7 @@ async function pullFromGist() {
     if (!raw) throw new Error('No data file in gist');
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
-      state = { weeks:{}, bw:[], pr:{}, swaps:{}, routine:{}, postureStreak:{}, fuel:{}, fuelSwaps:{}, supps:{}, suppStreak:{}, ...parsed };
+      state = { weeks:{}, bw:[], pr:{}, swaps:{}, routine:{}, postureStreak:{}, fuel:{}, fuelSwaps:{}, supps:{}, suppStreak:{}, weeks2:{}, pr2:{}, ...parsed };
       save();
     }
     const now = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
@@ -1343,7 +1417,7 @@ async function saveGistConfig() {
 
 function renderAll() {
   renderDailyRoutine(); renderPostureStreak();
-  renderAlts(); renderChecklist(); renderWeights(); updateStats();
+  renderAlts(); renderChecklist(); renderWeights(); renderWeights2(); updateStats();
   const activePage = document.querySelector('.page.active')?.id?.replace('page-','');
   if (activePage === 'progress') { renderBWLog(); drawChart(); renderPRList(); updateBWStats(); }
   if (activePage === 'fuel') { renderFuel(); }
