@@ -142,6 +142,10 @@
   .wl-pr.show{display:inline-block;}
   .wl-name-input{background:#161616;border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:13px;padding:6px 8px;flex:1;min-width:0;outline:none;transition:.15s;}
   .wl-name-input:focus{border-color:var(--accent);}
+  #weights2Container .wl-item{flex-wrap:wrap;}
+  #weights2Container .wl-name-input{flex-basis:100%;}
+  #weights2Container .wl-sets-info{flex:1;}
+  .wl-tip{flex-basis:100%;font-size:11px;color:var(--muted2);line-height:1.5;margin-top:-2px;}
 
   /* PROGRESS */
   .progress-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
@@ -413,6 +417,12 @@
 <div class="page" id="page-weights2">
   <div class="sec-title"><span class="pill">02b</span> Weight Log 2</div>
   <p style="font-size:12px;color:var(--muted2);margin-bottom:16px;">🆕 A second, independent weight log with a blank history. Type directly over any exercise name to change it — no swap page needed. 🏅 PR badge when you beat your best.</p>
+  <div class="callout"><strong>🧭 Posture-First Hypertrophy — How to run it</strong><br>
+    <strong>Effort:</strong> big lifts (first 1–2 of each day) stop 1–2 reps before failure. Isolation moves (curls, raises, pushdowns) — take the <em>last set only</em> to failure.<br>
+    <strong>Progression (double progression):</strong> stay at a weight until you hit the <em>top</em> of the rep range on every set with clean form, then add the smallest jump (1–2.5 kg DB/cable, 2.5–5 kg legs) and work back up.<br>
+    <strong>Deload:</strong> every 7th week (or sooner if lifts drop 2 sessions in a row) — same exercises, half the sets, ~2 reps further from failure.<br>
+    <strong>Left shoulder:</strong> any sharp pain (not muscle burn) = stop that exercise and swap it. Keep the daily posture routine + band pull-aparts before every upper day.<br>
+    <strong>Warm-up:</strong> 5 min easy bike + 2 ramp-up sets (≈50% and 75%) on the first exercise. Session target: 60–75 min.</div>
   <div id="weights2Container"></div>
 </div>
 
@@ -602,45 +612,57 @@ const DAYS = [
 ];
 
 // Independent program for the Weights 2 tab — own days/sets/reps/rest, decoupled from DAYS.
+// Plan v2: 5-day posture-first hypertrophy block (beginner, 200cm, left-shoulder friendly,
+// priority: back · shoulders · arms). Bump DAYS2_PLAN when the program changes so stale
+// saved exercise names get archived instead of overlaying the new plan.
+const DAYS2_PLAN = 'v2-posture-first';
 const DAYS2 = [
-  { day:'Day 1', label:'Monday', focus:'Push — Chest · Shoulders · Triceps', exercises:[
-    { name:'Barbell Bench Press',              sets:4, reps:'6-8',     rest:'2-3 min' },
-    { name:'Incline Dumbbell Press',           sets:3, reps:'8-10',    rest:'2 min' },
-    { name:'Dumbbell Shoulder Press',          sets:3, reps:'8-10',    rest:'2 min' },
-    { name:'Cable Lateral Raise',              sets:3, reps:'12-15',  rest:'60-90 sec' },
-    { name:'Cable Tricep Pushdown',            sets:3, reps:'10-12',  rest:'60-90 sec' },
-    { name:'Overhead Cable Tricep Extension',  sets:3, reps:'10-12',  rest:'60-90 sec' },
+  { day:'Day 1', label:'Monday', focus:'Back · Rear Delts · Biceps — Posture Priority', exercises:[
+    { name:'Neutral-Grip Pull-Up (assisted if needed)', sets:4, reps:'6-10',  rest:'2-3 min',   tip:'Chest up, pull elbows to back pockets. Use the assist machine until you get 3×8 clean.' },
+    { name:'Chest-Supported Dumbbell Row (incline bench)', sets:4, reps:'8-12', rest:'2 min', tip:'Chest stays on the pad — zero lower-back stress. Squeeze shoulder blades 1 sec at the top.' },
+    { name:'Half-Kneeling Single-Arm Cable Pulldown', sets:3, reps:'10-12/arm', rest:'90 sec', tip:'Pull elbow down to your hip, full stretch at the top. Great for lat width.' },
+    { name:'Cable Straight-Arm Pulldown (rope)', sets:3, reps:'12-15',  rest:'60-90 sec', tip:'Arms almost straight, hinge slightly forward. Lats only — no triceps.' },
+    { name:'Cable Y-Raise',                     sets:3, reps:'12-15',  rest:'60 sec',   tip:'Lower-trap builder — the #1 muscle for pulling shoulders back and down. Light weight.' },
+    { name:'Bayesian Cable Curl',               sets:3, reps:'10-12',  rest:'60-90 sec', tip:'Face away from the cable, arm behind you. Big stretch on the biceps. Last set to failure.' },
+    { name:'Machine Preacher Curl',             sets:3, reps:'10-12',  rest:'60 sec',   tip:'Slow 3-sec lowering. Last set to failure.' },
   ]},
-  { day:'Day 2', label:'Tuesday', focus:'Pull — Back · Biceps', exercises:[
-    { name:'Lat Pulldown',                     sets:4, reps:'8-10',    rest:'2 min' },
-    { name:'Chest-Supported Row (machine)',    sets:3, reps:'8-10',    rest:'2 min' },
-    { name:'Seated Cable Row',                 sets:3, reps:'10-12',  rest:'90 sec' },
-    { name:'Face Pulls',                       sets:3, reps:'12-15',  rest:'60-90 sec' },
-    { name:'Barbell/EZ-Bar Curl',              sets:3, reps:'8-10',    rest:'90 sec' },
-    { name:'Incline Dumbbell Curl',            sets:3, reps:'10-12',  rest:'60-90 sec' },
+  { day:'Day 2', label:'Tuesday', focus:'Legs A — Quads · Hamstrings · Core', exercises:[
+    { name:'Hack Squat (or Leg Press if no hack)', sets:4, reps:'8-10', rest:'2-3 min',  tip:'Best squat option for long legs. Feet mid-platform, go as deep as your knees allow pain-free.' },
+    { name:'Dumbbell Romanian Deadlift',        sets:3, reps:'8-10',   rest:'2 min',    tip:'Push hips back, soft knees, dumbbells slide down your thighs. Feel the hamstring stretch.' },
+    { name:'Seated Leg Curl',                   sets:3, reps:'10-12',  rest:'90 sec',   tip:'Lean torso forward slightly for a bigger hamstring stretch.' },
+    { name:'Dumbbell Walking Lunge',            sets:3, reps:'10/leg', rest:'2 min',    tip:'Long steps, upright torso. Builds legs + balance.' },
+    { name:'Leg Extension',                     sets:3, reps:'12-15',  rest:'60-90 sec', tip:'Pause 1 sec at the top. Last set to failure.' },
+    { name:'Leg Press Calf Raise',              sets:4, reps:'12-15',  rest:'60 sec',   tip:'Full stretch at the bottom, 2-sec pause. Calves need slow reps.' },
+    { name:'Cable Crunch',                      sets:3, reps:'12-15',  rest:'60 sec',   tip:'Curl ribs toward hips — don\'t just bend at the hips.' },
   ]},
-  { day:'Day 3', label:'Wednesday', focus:'Legs — Quads · Hamstrings · Glutes · Calves', exercises:[
-    { name:'Barbell Back Squat (or Leg Press if joints prefer)', sets:4, reps:'6-8', rest:'2-3 min' },
-    { name:'Romanian Deadlift (dumbbell or barbell)', sets:3, reps:'8-10', rest:'2 min' },
-    { name:'Leg Extension',                    sets:3, reps:'12-15',  rest:'90 sec' },
-    { name:'Lying Leg Curl',                   sets:3, reps:'10-12',  rest:'90 sec' },
-    { name:'Standing Calf Raise',              sets:4, reps:'10-15',  rest:'60-90 sec' },
+  { day:'Day 3', label:'Wednesday', focus:'Chest · Shoulders · Triceps — Shoulder-Friendly Push', exercises:[
+    { name:'Low-Incline Dumbbell Press (neutral grip)', sets:4, reps:'8-10', rest:'2-3 min', tip:'Bench at 15-30°, palms facing each other — much kinder to your left shoulder than a barbell.' },
+    { name:'Half-Kneeling Landmine Press',      sets:3, reps:'8-10/arm', rest:'90 sec', tip:'Shoulder-safe overhead alternative. Press up and slightly forward, ribs down.' },
+    { name:'High-to-Low Cable Crossover',       sets:3, reps:'12-15',  rest:'60-90 sec', tip:'Hands meet at belly button. Squeeze chest 1 sec.' },
+    { name:'Lean-Away Cable Lateral Raise',     sets:4, reps:'12-15',  rest:'60 sec',   tip:'Hold the pole, lean away. Lead with the elbow. Last set to failure.' },
+    { name:'Cross-Body Cable Tricep Extension', sets:3, reps:'12-15',  rest:'60 sec',   tip:'Single arm, cable from opposite side. Very elbow-friendly.' },
+    { name:'Dumbbell Skull Crusher (neutral grip)', sets:3, reps:'10-12', rest:'60-90 sec', tip:'Lower DBs beside your head, elbows pointing up. Last set to failure.' },
+    { name:'Cable External Rotation',           sets:2, reps:'15/arm', rest:'45 sec',   tip:'Rotator-cuff rehab for the left shoulder. Very light — this is health work, not ego.' },
   ]},
   { day:'Day 4', label:'Thursday', focus:'Rest / Active Recovery', exercises:[], rest:true },
-  { day:'Day 5', label:'Friday', focus:'Upper Body — Strength + Arm Focus', exercises:[
-    { name:'Incline Machine Press',            sets:3, reps:'8-10',    rest:'2 min' },
-    { name:'Single-Arm Cable Row',              sets:3, reps:'8-10',    rest:'2 min' },
-    { name:'Dumbbell Shoulder Press',          sets:3, reps:'8-10',    rest:'90 sec' },
-    { name:'Close-Grip Bench Press (triceps)', sets:3, reps:'8-10',    rest:'2 min' },
-    { name:'Hammer Curl',                      sets:3, reps:'10-12',  rest:'90 sec' },
-    { name:'Cable Tricep Kickback',            sets:2, reps:'12-15',  rest:'60 sec' },
+  { day:'Day 5', label:'Friday', focus:'Upper — Shoulders · Arms · Upper Back (Priority Day)', exercises:[
+    { name:'Wide-Grip Cable Row (to upper chest)', sets:4, reps:'10-12', rest:'2 min',  tip:'Elbows flared ~60°, pull to upper chest. Builds the upper back that fixes rounded shoulders.' },
+    { name:'Seated Dumbbell Shoulder Press (neutral grip)', sets:3, reps:'8-10', rest:'2 min', tip:'Palms facing in, stop just short of lockout. Skip if left shoulder hurts — swap for a 2nd landmine press.' },
+    { name:'Deficit Push-Up',                   sets:3, reps:'AMRAP (stop 1-2 short)', rest:'90 sec', tip:'Hands on plates/handles. Free shoulder blades = healthy shoulders. Add a plate on your back when >20 reps.' },
+    { name:'Seated Dumbbell Lateral Raise',     sets:4, reps:'12-15',  rest:'60 sec',   tip:'Slight forward lean, raise to shoulder height. Last set to failure.' },
+    { name:'Prone Incline Dumbbell W-Raise',    sets:3, reps:'12-15',  rest:'60 sec',   tip:'Lie chest-down on incline bench, pull elbows back into a W. Rear delts + posture.' },
+    { name:'EZ-Bar Spider Curl',                sets:3, reps:'10-12',  rest:'60 sec',   tip:'Chest on incline bench, arms hanging straight down. Superset with the pushdown below.' },
+    { name:'Single-Arm Reverse-Grip Pushdown',  sets:3, reps:'12-15/arm', rest:'60 sec', tip:'Palm up. Hits the triceps without stressing the shoulder. Last set to failure.' },
+    { name:'Cross-Body Dumbbell Hammer Curl',   sets:2, reps:'10-12/arm', rest:'60 sec', tip:'Builds brachialis = thicker-looking arms. Last set to failure.' },
   ]},
-  { day:'Day 6', label:'Saturday', focus:'Lower Body — Volume + Glutes', exercises:[
-    { name:'Bulgarian Split Squat',            sets:3, reps:'8-10/leg', rest:'2 min' },
-    { name:'Glute Push Machine',               sets:3, reps:'10-12',  rest:'90 sec' },
-    { name:'Leg Press (narrow stance)',        sets:3, reps:'10-12',  rest:'2 min' },
-    { name:'Hyperextensions',                  sets:3, reps:'12-15',  rest:'90 sec' },
-    { name:'Seated Calf Raise',                sets:4, reps:'12-15',  rest:'60-90 sec' },
+  { day:'Day 6', label:'Saturday', focus:'Legs B — Glutes · Hamstrings · Core', exercises:[
+    { name:'Trap Bar Deadlift (or Barbell RDL)', sets:3, reps:'6-8', rest:'3 min',     tip:'Main strength lift. Brace hard, push the floor away. Stop 2 reps short — never grind.' },
+    { name:'Barbell Hip Thrust (or Machine)',   sets:3, reps:'8-12',   rest:'2 min',    tip:'Chin tucked, pause 1 sec at the top, squeeze glutes.' },
+    { name:'Smith Machine Reverse Lunge',       sets:3, reps:'10/leg', rest:'90 sec',   tip:'Step back, front shin vertical. Glute + quad.' },
+    { name:'Lying Leg Curl',                    sets:3, reps:'10-12',  rest:'90 sec',   tip:'Hips pinned to the pad, slow lowering.' },
+    { name:'Hip Adduction Machine',             sets:3, reps:'12-15',  rest:'60 sec',   tip:'Inner thighs — helps squat strength and knee stability.' },
+    { name:'Seated Calf Raise',                 sets:4, reps:'12-15',  rest:'60 sec',   tip:'Pause at the bottom stretch. Last set to failure.' },
+    { name:'Hanging Knee Raise',                sets:3, reps:'10-15',  rest:'60 sec',   tip:'Curl pelvis up, no swinging. Also decompresses the spine.' },
   ]},
   { day:'Day 7', label:'Sunday', focus:'Full Rest', exercises:[], rest:true }
 ];
@@ -735,8 +757,17 @@ function getDayData(dayIdx) {
 
 function getDayData2(dayIdx) {
   if (!state.weeks2[weekKey()]) state.weeks2[weekKey()] = {};
+  const existing = state.weeks2[weekKey()][dayIdx];
+  if (existing && existing.plan !== DAYS2_PLAN) {
+    // Logged under a previous Weights 2 program — keep it, but don't overlay the new plan.
+    if (!state.weeks2Archive) state.weeks2Archive = {};
+    if (!state.weeks2Archive[weekKey()]) state.weeks2Archive[weekKey()] = {};
+    state.weeks2Archive[weekKey()][dayIdx] = existing;
+    delete state.weeks2[weekKey()][dayIdx];
+  }
   if (!state.weeks2[weekKey()][dayIdx]) {
     state.weeks2[weekKey()][dayIdx] = {
+      plan: DAYS2_PLAN,
       names: DAYS2[dayIdx].exercises.map(ex => ex.name),
       weights: DAYS2[dayIdx].exercises.map(() => '')
     };
@@ -1064,6 +1095,7 @@ function renderWeights2() {
             <input class="wl-input" type="number" min="0" max="500" step="2.5" placeholder="0" value="${data.weights[ei]}" oninput="updateWeight2(${di},${ei},this)" id="wi2-${currentWeek}-${di}-${ei}">
             <div class="wl-unit">kg</div>
             <div class="wl-pr ${data.weights[ei]&&parseFloat(data.weights[ei])>=pr&&pr>0?'show':''}" id="pr2-${currentWeek}-${di}-${ei}">PR 🏅</div>
+            ${ex.tip?`<div class="wl-tip">${ex.tip}</div>`:''}
           </div>`;
         }).join('')}
       </div>`;
