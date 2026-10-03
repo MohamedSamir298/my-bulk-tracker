@@ -423,7 +423,7 @@
     <strong>Progression (double progression):</strong> stay at a weight until you hit the <em>top</em> of the rep range on every set with clean form, then add the smallest jump (1–2.5 kg DB/cable, 2.5–5 kg legs) and work back up.<br>
     <strong>Deload:</strong> every 7th week (or sooner if lifts drop 2 sessions in a row) — same exercises, half the sets, ~2 reps further from failure.<br>
     <strong>Left shoulder:</strong> any sharp pain (not muscle burn) = stop that exercise and swap it. Keep the daily posture routine + band pull-aparts before every upper day.<br>
-    <strong>Warm-up:</strong> 5 min easy bike + 2 ramp-up sets (≈50% and 75%) on the first exercise. Session target: 60–75 min.</div>
+    <strong>Warm-up:</strong> do the short 🔥 warm-up at the top of each day (no cardio — saves calories and energy). Session target: 60–75 min.</div>
   <div id="weights2Container"></div>
 </div>
 
@@ -617,10 +617,22 @@ const DAYS = [
 // basic dumbbell/cable moves (beginner, left-shoulder friendly, priority: back · shoulders · arms).
 // Bump DAYS2_PLAN when the program changes so stale saved exercise names get archived
 // instead of overlaying the new plan.
-const DAYS2_PLAN = 'v3-posture-first-simple';
+const DAYS2_PLAN = 'v4-posture-first-warmups';
+// Slots renamed since the previous plan: saved names still equal to the old default get the new
+// name (and a blank weight, since it's a different exercise); custom renames and weights are kept.
+const DAYS2_RENAMES = {
+  'v3-posture-first-simple': {
+    0: { 0: ['Assisted Pull-Up Machine', 'Lat Pulldown'] },
+    4: { 0: ['Lat Pulldown (wide grip)', 'Close-Grip Lat Pulldown (neutral handle)'] },
+  },
+};
 const DAYS2 = [
-  { day:'Day 1', label:'Monday', focus:'Back · Rear Delts · Biceps — Posture Priority', exercises:[
-    { name:'Assisted Pull-Up Machine',          sets:3, reps:'8-10',   rest:'2 min',    tip:'Kneel or stand on the pad. More assist weight = easier. Pull your chest toward the bar.' },
+  { day:'Day 1', label:'Monday', focus:'Back · Rear Delts · Biceps — Posture Priority', warmup:[
+    { name:'Arm Circles',            sets:'10 fwd + 10 back', tip:'Small to big circles. Loosens the shoulder joint.' },
+    { name:'Band Pull-Aparts',       sets:'1×15', tip:'Light band, squeeze shoulder blades. Wakes up the upper back.' },
+    { name:'Light Lat Pulldown',     sets:'1×12', tip:'~50% of your working weight. Stop well before it gets hard.' },
+  ], exercises:[
+    { name:'Lat Pulldown',                      sets:4, reps:'8-10',   rest:'2 min',    tip:'Pull the bar to your upper chest, lean back slightly, elbows down to your sides.' },
     { name:'Seated Cable Row (close grip)',     sets:3, reps:'10-12',  rest:'2 min',    tip:'Sit tall, pull the handle to your belly, squeeze your shoulder blades together.' },
     { name:'One-Arm Dumbbell Row (on bench)',   sets:3, reps:'10-12/arm', rest:'90 sec', tip:'One knee and hand on the bench, back flat. Pull the dumbbell to your hip.' },
     { name:'Face Pull (rope)',                  sets:3, reps:'15',     rest:'60 sec',   tip:'Cable at head height, pull the rope to your face, elbows high. Light weight — posture work.' },
@@ -628,7 +640,11 @@ const DAYS2 = [
     { name:'Dumbbell Curl',                     sets:3, reps:'10-12',  rest:'60 sec',   tip:'Elbows pinned to your sides, no swinging. Lower slowly.' },
     { name:'Cable Rope Hammer Curl',            sets:3, reps:'10-12',  rest:'60 sec',   tip:'Thumbs up, curl the rope up. Makes arms look thicker.' },
   ]},
-  { day:'Day 2', label:'Tuesday', focus:'Legs A — Quads · Hamstrings · Core', exercises:[
+  { day:'Day 2', label:'Tuesday', focus:'Legs A — Quads · Hamstrings · Core', warmup:[
+    { name:'Bodyweight Squat',       sets:'1×10', tip:'Slow, full depth. Warms knees and hips.' },
+    { name:'Leg Swings',             sets:'10 each leg', tip:'Hold something for balance, swing front-to-back.' },
+    { name:'Light Leg Press',        sets:'1×12', tip:'~50% of your working weight. Easy reps only.' },
+  ], exercises:[
     { name:'Leg Press',                         sets:4, reps:'10-12',  rest:'2 min',    tip:'Feet shoulder-width, lower until knees reach ~90°. Don\'t lock your knees at the top.' },
     { name:'Goblet Squat (dumbbell)',           sets:3, reps:'10-12',  rest:'90 sec',   tip:'Hold one dumbbell at your chest, sit down between your heels, chest up.' },
     { name:'Leg Extension',                     sets:3, reps:'12-15',  rest:'60-90 sec', tip:'Pause 1 sec at the top.' },
@@ -636,7 +652,11 @@ const DAYS2 = [
     { name:'Standing Calf Raise (machine)',     sets:4, reps:'12-15',  rest:'60 sec',   tip:'All the way up on your toes, slow stretch at the bottom.' },
     { name:'Plank',                             sets:3, reps:'30-45 sec', rest:'60 sec', tip:'Elbows under shoulders, body in a straight line, squeeze your glutes. Log 0 kg (or added weight).' },
   ]},
-  { day:'Day 3', label:'Wednesday', focus:'Chest · Shoulders · Triceps — Shoulder-Friendly Push', exercises:[
+  { day:'Day 3', label:'Wednesday', focus:'Chest · Shoulders · Triceps — Shoulder-Friendly Push', warmup:[
+    { name:'Arm Circles',            sets:'10 fwd + 10 back', tip:'Small to big circles. Loosens the shoulder joint.' },
+    { name:'Band External Rotation', sets:'1×12 each arm', tip:'Elbow at your side, rotate hand outward. Protects the left shoulder.' },
+    { name:'Light Chest Press',      sets:'1×12', tip:'~50% of your working weight. Easy reps only.' },
+  ], exercises:[
     { name:'Chest Press Machine',               sets:4, reps:'8-10',   rest:'2 min',    tip:'Seat so handles are at mid-chest. The machine guides the path — easy on the shoulder.' },
     { name:'Incline Dumbbell Press (palms facing in)', sets:3, reps:'10-12', rest:'2 min', tip:'Bench on a low incline. Palms facing each other is kinder to your left shoulder.' },
     { name:'Machine Shoulder Press',            sets:3, reps:'10-12',  rest:'90 sec',   tip:'Go light. If your left shoulder hurts, skip it and do 2 extra sets of lateral raises.' },
@@ -646,8 +666,12 @@ const DAYS2 = [
     { name:'Band External Rotation',            sets:2, reps:'15/arm', rest:'45 sec',   tip:'Elbow at your side, rotate your hand outward. Very light — strengthens the shoulder.' },
   ]},
   { day:'Day 4', label:'Thursday', focus:'Rest / Active Recovery', exercises:[], rest:true },
-  { day:'Day 5', label:'Friday', focus:'Upper — Shoulders · Arms · Back (Priority Day)', exercises:[
-    { name:'Lat Pulldown (wide grip)',          sets:3, reps:'10-12',  rest:'2 min',    tip:'Pull the bar to your upper chest, lean back slightly. No pulling behind the neck.' },
+  { day:'Day 5', label:'Friday', focus:'Upper — Shoulders · Arms · Back (Priority Day)', warmup:[
+    { name:'Arm Circles',            sets:'10 fwd + 10 back', tip:'Small to big circles. Loosens the shoulder joint.' },
+    { name:'Band Pull-Aparts',       sets:'1×15', tip:'Light band, squeeze shoulder blades. Wakes up the upper back.' },
+    { name:'Light Lat Pulldown',     sets:'1×12', tip:'~50% of your working weight. Stop well before it gets hard.' },
+  ], exercises:[
+    { name:'Close-Grip Lat Pulldown (neutral handle)', sets:3, reps:'10-12', rest:'2 min', tip:'Use the V-handle (palms facing). Pull to your upper chest — hits the back from a second angle.' },
     { name:'Machine Row (chest supported)',     sets:3, reps:'10-12',  rest:'90 sec',   tip:'Chest on the pad, squeeze shoulder blades for 1 sec.' },
     { name:'Pec Deck (chest fly machine)',      sets:3, reps:'12-15',  rest:'60 sec',   tip:'Bring the handles together in front of your chest, slow on the way back.' },
     { name:'Cable Lateral Raise',               sets:3, reps:'12-15',  rest:'60 sec',   tip:'One arm at a time, cable from low. Raise to shoulder height.' },
@@ -655,7 +679,11 @@ const DAYS2 = [
     { name:'EZ-Bar Curl',                       sets:3, reps:'10-12',  rest:'60 sec',   tip:'Elbows still, squeeze at the top.' },
     { name:'Cable Tricep Pushdown (straight bar)', sets:3, reps:'10-12', rest:'60 sec', tip:'Push down until arms are straight, elbows don\'t move.' },
   ]},
-  { day:'Day 6', label:'Saturday', focus:'Legs B — Glutes · Hamstrings · Core', exercises:[
+  { day:'Day 6', label:'Saturday', focus:'Legs B — Glutes · Hamstrings · Core', warmup:[
+    { name:'Bodyweight Squat',       sets:'1×10', tip:'Slow, full depth. Warms knees and hips.' },
+    { name:'Glute Bridge',           sets:'1×12', tip:'Lying on your back, squeeze glutes at the top. Switches glutes on.' },
+    { name:'Light Smith Machine Squat', sets:'1×12', tip:'~50% of your working weight. Easy reps only.' },
+  ], exercises:[
     { name:'Smith Machine Squat (or Leg Press)', sets:3, reps:'10-12', rest:'2 min',    tip:'Feet slightly in front of the bar, sit down like into a chair.' },
     { name:'Glute Push Machine (hip thrust)',   sets:3, reps:'10-12',  rest:'90 sec',   tip:'Push hips up, squeeze glutes 1 sec at the top.' },
     { name:'Lying Leg Curl',                    sets:3, reps:'10-12',  rest:'90 sec',   tip:'Hips stay on the pad, lower slowly.' },
@@ -757,6 +785,13 @@ function getDayData(dayIdx) {
 function getDayData2(dayIdx) {
   if (!state.weeks2[weekKey()]) state.weeks2[weekKey()] = {};
   const existing = state.weeks2[weekKey()][dayIdx];
+  const renames = existing && DAYS2_RENAMES[existing.plan];
+  if (renames) {
+    Object.entries(renames[dayIdx] || {}).forEach(([ei, [oldName, newName]]) => {
+      if (existing.names[ei] === oldName) { existing.names[ei] = newName; existing.weights[ei] = ''; }
+    });
+    existing.plan = DAYS2_PLAN;
+  }
   if (existing && existing.plan !== DAYS2_PLAN) {
     // Logged under a previous Weights 2 program — keep it, but don't overlay the new plan.
     if (!state.weeks2Archive) state.weeks2Archive = {};
@@ -1085,6 +1120,14 @@ function renderWeights2() {
         <div class="toggle-icon">▼</div>
       </div>
       <div class="collapsible wl-items">
+        ${day.warmup&&day.warmup.length?`<div class="warmup-block">
+          <div class="warmup-header"><span class="warmup-label">🔥 Warm-Up · ~3 min</span></div>
+          <div class="warmup-items">${day.warmup.map(w=>`<div class="warmup-item">
+            <div class="warmup-dot"></div>
+            <div style="flex:1"><div class="warmup-name">${w.name}</div><div class="warmup-tip">${w.tip}</div></div>
+            <div class="warmup-sets">${w.sets}</div>
+          </div>`).join('')}</div>
+        </div>`:''}
         ${day.exercises.map((ex,ei)=>{
           const name = data.names[ei];
           const pr = state.pr2[name]||0;
