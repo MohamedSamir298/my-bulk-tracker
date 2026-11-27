@@ -813,7 +813,7 @@ function getDayData2(dayIdx) {
 // WEEK NAV
 // ============================================================
 function changeWeek(d) {
-  currentWeek = Math.max(1, Math.min(16, currentWeek + d));
+  currentWeek = Math.max(1, Math.min(32, currentWeek + d));
   document.getElementById('weekNum').textContent = currentWeek;
   document.getElementById('weekLabel').textContent = 'Week ' + currentWeek;
   renderWeights(); renderWeights2(); updateStats();
